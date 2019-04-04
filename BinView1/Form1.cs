@@ -310,7 +310,14 @@ namespace BinView1
                 if( m_data != null )
                     m_data = null;
 
-                FileStream fs = File.OpenRead( openFileDlg.FileName );
+                openFile(openFileDlg.FileName);
+            }
+        }
+
+        private void openFile(string filename)
+        {
+
+                FileStream fs = File.OpenRead( filename );
                 m_data = new byte[ fs.Length ];
                 fs.Read( m_data, 0, m_data.Length );
                 fs.Close();
@@ -325,7 +332,7 @@ namespace BinView1
                 }
                 DrawFingerPrint();
                 DrawDataImage();
-            }
+
         }
 
         private void Scale_CheckedChanged( object sender, EventArgs e )
