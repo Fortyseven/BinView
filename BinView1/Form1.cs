@@ -16,8 +16,8 @@ namespace BinView1
     {
         byte[] m_data;
         Int32[,] m_finger_print = new Int32[ 256, 256 ];
-        Int32 m_max_dencity = 0;
-        Int32 m_avarage_dencity = 0;
+        Int32 m_max_density = 0;
+        Int32 m_avarage_density = 0;
 
         int m_block_size = 10240;
         int m_previous_y = -1;
@@ -40,15 +40,15 @@ namespace BinView1
 
         }
 
-        private void CalculateRangeFingerPrint( int range_start, int range_end )
+        private void CalculateRangeFingerPrint2( int range_start, int range_end )
         {
             if( m_data != null ) {
                 int x, y;
                 int start;
                 int end;
 
-                m_max_dencity = 0;
-                m_avarage_dencity = 0;
+                m_max_density = 0;
+                m_avarage_density = 0;
 
                 for( x = 0; x < 256; x++ )
                     for( y = 0; y < 256; y++ )
@@ -82,28 +82,27 @@ namespace BinView1
                     y = m_data[ i ];
                     m_finger_print[ x, y ]++;
 
-                    if( m_max_dencity < m_finger_print[ x, y ] )
-                        m_max_dencity = m_finger_print[ x, y ];
+                    if( m_max_density < m_finger_print[ x, y ] )
+                        m_max_density = m_finger_print[ x, y ];
                 }
 
                 for( x = 0; x < 256; x++ )
                     for( y = 0; y < 256; y++ )
-                        m_avarage_dencity += m_finger_print[ x, y ];
+                        m_avarage_density += m_finger_print[ x, y ];
 
-                m_avarage_dencity = m_avarage_dencity / ( 256 * 256 );
+                m_avarage_density = m_avarage_density / ( 256 * 256 );
 
             }
         }
 
-        /*
-        private void CalculateFingerPrint()
+        private void CalculateRangeFingerPrint(int xy, int yy)
         {
             if (m_data != null)
             {
                 int x, y;
 
-                m_max_dencity = 0;
-                m_avarage_dencity = 0;
+                m_max_density = 0;
+                m_avarage_density = 0;
 
                 for (x = 0; x < 256; x++)
                     for (y = 0; y < 256; y++)
@@ -117,18 +116,17 @@ namespace BinView1
                     y = m_data[i];
                     m_finger_print[x, y]++;
 
-                    if (m_max_dencity < m_finger_print[x, y]) m_max_dencity = m_finger_print[x, y];
+                    if (m_max_density < m_finger_print[x, y]) m_max_density = m_finger_print[x, y];
                 }
 
                 for (x = 0; x < 256; x++)
                     for (y = 0; y < 256; y++)
-                        m_avarage_dencity += m_finger_print[x, y];
+                        m_avarage_density += m_finger_print[x, y];
 
-                m_avarage_dencity = m_avarage_dencity / (256 * 256);
+                m_avarage_density = m_avarage_density / (256 * 256);
 
             }
         }
-        */
 
         private void DrawDataImage()
         {
@@ -158,26 +156,26 @@ namespace BinView1
                 if( Normalize ) {
                     for( x = 0; x < 256; x++ )
                         for( y = 0; y < 256; y++ ) {
-                            Int32 dencity = m_finger_print[ x, y ];
-                            byte v_dencity;
+                            Int32 density = m_finger_print[ x, y ];
+                            byte v_density;
 
                             /*
-                            if (dencity < m_avarage_dencity)
+                            if (density < m_avarage_density)
                             {
-                                v_dencity = (byte)(((float)180.0 * (float)dencity) / (float)m_avarage_dencity);
+                                v_density = (byte)(((float)180.0 * (float)density) / (float)m_avarage_density);
                             } else {
-                                v_dencity = (byte)(180.0 + ((float)75.0 * (float)dencity) / (float)m_max_dencity);
+                                v_density = (byte)(180.0 + ((float)75.0 * (float)density) / (float)m_max_density);
                             }
                             */
 
-                            if( dencity > 0 ) {
-                                v_dencity = (byte)( (byte)255 - (byte)( 255 / dencity ) );
+                            if( density > 0 ) {
+                                v_density = (byte)( (byte)255 - (byte)( 255 / density ) );
                             }
                             else {
-                                v_dencity = 0;
+                                v_density = 0;
                             }
 
-                            Color co = Color.FromArgb( 255, v_dencity, v_dencity, v_dencity );
+                            Color co = Color.FromArgb( 255, v_density, v_density, v_density );
 
 
                             if( m_finger_print[ x, y ] > 0 ) {
@@ -190,15 +188,15 @@ namespace BinView1
 
                     for( x = 0; x < 256; x++ )
                         for( y = 0; y < 256; y++ ) {
-                            Int32 dencity = m_finger_print[ x, y ];
-                            byte v_dencity;
+                            Int32 density = m_finger_print[ x, y ];
+                            byte v_density;
 
-                            if( dencity < 256 )
-                                v_dencity = (byte)dencity;
+                            if( density < 256 )
+                                v_density = (byte)density;
                             else
-                                v_dencity = 255;
+                                v_density = 255;
 
-                            Color co = Color.FromArgb( 255, v_dencity, v_dencity, v_dencity );
+                            Color co = Color.FromArgb( 255, v_density, v_density, v_density );
 
                             if( m_finger_print[ x, y ] > 0 ) {
                                 bm.SetPixel( x, y, co );
