@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("BinView1")]
+[assembly: AssemblyTitle( "BinView" )]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("BinView1")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyProduct( "BinView" )]
+[assembly: AssemblyCopyright( "Copyright ©  2019" )]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
