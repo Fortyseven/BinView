@@ -177,7 +177,6 @@
             // openFileDlg
             // 
             this.openFileDlg.FileName = "*.*";
-            this.openFileDlg.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
             // 
             // flowLayoutPanel1
             // 
