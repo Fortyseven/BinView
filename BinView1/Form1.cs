@@ -40,7 +40,7 @@ namespace BinView1
 
         }
 
-        private void CalculateRangeFingerPrint2( int range_start, int range_end )
+        private void CalculateRangeFingerPrint( int range_start, int range_end )
         {
             if( m_data != null ) {
                 int x, y;
@@ -95,38 +95,38 @@ namespace BinView1
             }
         }
 
-        private void CalculateRangeFingerPrint(int xy, int yy)
-        {
-            if (m_data != null)
-            {
-                int x, y;
+        //private void OldCalculateRangeFingerPrint(int xy, int yy)
+        //{
+        //    if (m_data != null)
+        //    {
+        //        int x, y;
 
-                m_max_density = 0;
-                m_avarage_density = 0;
+        //        m_max_density = 0;
+        //        m_avarage_density = 0;
 
-                for (x = 0; x < 256; x++)
-                    for (y = 0; y < 256; y++)
-                        m_finger_print[x, y] = 0;
+        //        for (x = 0; x < 256; x++)
+        //            for (y = 0; y < 256; y++)
+        //                m_finger_print[x, y] = 0;
 
-                y = m_data[0];
+        //        y = m_data[0];
 
-                for (int i = 1; i < m_data.Length; i++)
-                {
-                    x = y;
-                    y = m_data[i];
-                    m_finger_print[x, y]++;
+        //        for (int i = 1; i < m_data.Length; i++)
+        //        {
+        //            x = y;
+        //            y = m_data[i];
+        //            m_finger_print[x, y]++;
 
-                    if (m_max_density < m_finger_print[x, y]) m_max_density = m_finger_print[x, y];
-                }
+        //            if (m_max_density < m_finger_print[x, y]) m_max_density = m_finger_print[x, y];
+        //        }
 
-                for (x = 0; x < 256; x++)
-                    for (y = 0; y < 256; y++)
-                        m_avarage_density += m_finger_print[x, y];
+        //        for (x = 0; x < 256; x++)
+        //            for (y = 0; y < 256; y++)
+        //                m_avarage_density += m_finger_print[x, y];
 
-                m_avarage_density = m_avarage_density / (256 * 256);
+        //        m_avarage_density = m_avarage_density / (256 * 256);
 
-            }
-        }
+        //    }
+        //}
 
         private void DrawDataImage()
         {
