@@ -15,8 +15,8 @@ namespace BinView1
         static void Main()
         {
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            Application.SetCompatibleTextRenderingDefault( false );
+            Application.Run( new MainForm() );
         }
     }
 }
