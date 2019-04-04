@@ -1,0 +1,4 @@
+*.cs diff
+*.csproj diff
+*.res diff
+*.resx diff

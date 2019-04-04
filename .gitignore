@@ -1,0 +1,6 @@
+BinView1/obj/*
+BinView1/bin/*
+.vs/
+*.swp
+*.csproj.user
+
