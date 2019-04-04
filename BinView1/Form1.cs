@@ -30,10 +30,13 @@ namespace BinView1
 
             BlockSizeBox.Text = m_block_size.ToString();
 
+            initTooltips();
         }
 
+        private void initTooltips()
         {
-
+            var tt = new ToolTip();
+            tt.SetToolTip( BlockSizeBox, "Block size" );
 
         }
 
