@@ -10,29 +10,44 @@ using System.Windows.Forms;
 using System.IO;
 using System.Drawing.Drawing2D;
 
-namespace BinView1
+namespace Binalysis
 {
     public partial class MainForm : Form
     {
-        byte[] m_data;
-        Int32[,] m_finger_print = new Int32[ 256, 256 ];
-        Int32 m_max_density = 0;
-        Int32 m_avarage_density = 0;
+        const string APP_NAME = "Binalysis";
+        const int DEFAULT_BLOCK_SIZE = 10240;
 
-        int m_block_size = 10240;
+        Fingerprint m_fingerprint;
+        DataOverview m_data_overview;
+
+        byte[] m_data;
+
+        int m_block_size = DEFAULT_BLOCK_SIZE;
+
         int m_previous_y = -1;
 
+
+
+        /********************************************************************/
         public MainForm()
         {
             InitializeComponent();
+
+            m_fingerprint = new Fingerprint();
+            m_data_overview = new DataOverview();
 
             m_data = null;
 
             BlockSizeBox.Text = m_block_size.ToString();
 
             initTooltips();
+            //openFile( "d:\\temp\\temp\\Super Mario Bros. (JU) (PRG1).nes" );
+            openFile( "d:\\temp\\temp\\KOAN Sound - Cobalt-3444478263.mp3" );
+
+
         }
 
+        /********************************************************************/
         private void initTooltips()
         {
             var tt = new ToolTip();
@@ -40,60 +55,7 @@ namespace BinView1
 
         }
 
-        private void CalculateRangeFingerPrint( int range_start, int range_end )
-        {
-            if( m_data != null ) {
-                int x, y;
-                int start;
-                int end;
 
-                m_max_density = 0;
-                m_avarage_density = 0;
-
-                for( x = 0; x < 256; x++ )
-                    for( y = 0; y < 256; y++ )
-                        m_finger_print[ x, y ] = 0;
-
-                if( range_start < range_end ) {
-                    start = range_start;
-                    end = range_end;
-                }
-                else {
-                    start = range_end;
-                    end = range_start;
-                }
-
-                if( start < 0 ) {
-                    start = 0;
-                    if( end < 0 )
-                        end = 0;
-                }
-
-                if( end >= m_data.Length ) {
-                    end = m_data.Length - 1;
-                    if( start >= m_data.Length - 1 )
-                        start = m_data.Length - 1;
-                }
-
-                y = m_data[ start ];
-
-                for( int i = start + 1; i < end; i++ ) {
-                    x = y;
-                    y = m_data[ i ];
-                    m_finger_print[ x, y ]++;
-
-                    if( m_max_density < m_finger_print[ x, y ] )
-                        m_max_density = m_finger_print[ x, y ];
-                }
-
-                for( x = 0; x < 256; x++ )
-                    for( y = 0; y < 256; y++ )
-                        m_avarage_density += m_finger_print[ x, y ];
-
-                m_avarage_density = m_avarage_density / ( 256 * 256 );
-
-            }
-        }
 
         //private void OldCalculateRangeFingerPrint(int xy, int yy)
         //{
@@ -128,292 +90,113 @@ namespace BinView1
         //    }
         //}
 
-        private void DrawDataImage()
+
+        /********************************************************************/
+        private void redrawFingerprint()
         {
-            const int Width = 128;
-            int Height = (int)Math.Ceiling( (float)( m_data.Length ) / (float)( Width ) );
-
-            Bitmap bm = new Bitmap( Width, Height );
-            for( int i = 1; i < m_data.Length; i++ ) {
-                bm.SetPixel( i % Width, i / Width, Color.FromArgb( 255, 32, m_data[ i ], 64 ) );
-
-            }
-
-            DataPictureBox.Image = bm;
-        }
-
-        private void DrawFingerPrint()
-        {
-            //Bitmap bm = new Bitmap( 512, 512);
+            // Bitmap bm = new Bitmap( 512, 512);
             Bitmap bm = new Bitmap( 256, 256 );
 
             bool Scaled = ScaleChk.Checked;
             bool Normalize = NormalizeChk.Checked;
 
-            int x, y;
-
             if( Scaled ) {
                 if( Normalize ) {
-                    for( x = 0; x < 256; x++ )
-                        for( y = 0; y < 256; y++ ) {
-                            Int32 density = m_finger_print[ x, y ];
-                            byte v_density;
-
-                            /*
-                            if (density < m_avarage_density)
-                            {
-                                v_density = (byte)(((float)180.0 * (float)density) / (float)m_avarage_density);
-                            } else {
-                                v_density = (byte)(180.0 + ((float)75.0 * (float)density) / (float)m_max_density);
-                            }
-                            */
-
-                            if( density > 0 ) {
-                                v_density = (byte)( (byte)255 - (byte)( 255 / density ) );
-                            }
-                            else {
-                                v_density = 0;
-                            }
-
-                            Color co = Color.FromArgb( 255, v_density, v_density, v_density );
-
-
-                            if( m_finger_print[ x, y ] > 0 ) {
-                                bm.SetPixel( x, y, co );
-                            }
-                        }
-
+                    m_fingerprint.drawNormalized( bm );
                 }
                 else {
-
-                    for( x = 0; x < 256; x++ )
-                        for( y = 0; y < 256; y++ ) {
-                            Int32 density = m_finger_print[ x, y ];
-                            byte v_density;
-
-                            if( density < 256 )
-                                v_density = (byte)density;
-                            else
-                                v_density = 255;
-
-                            Color co = Color.FromArgb( 255, v_density, v_density, v_density );
-
-                            if( m_finger_print[ x, y ] > 0 ) {
-                                bm.SetPixel( x, y, co );
-                            }
-                        }
+                    m_fingerprint.drawScaled( bm );
                 }
-
             }
             else {
-                Color active = Color.FromArgb( 255, 255, 255, 255 );
-                //Color iniactive = Color.FromArgb(255, 255, 255, 255);
-
-                for( x = 0; x < 256; x++ )
-                    for( y = 0; y < 256; y++ ) {
-                        if( m_finger_print[ x, y ] > 0 ) {
-                            bm.SetPixel( x, y, active );
-                        }
-                    }
+                m_fingerprint.drawRaw( bm );
             }
 
-            pictureBox1.Image = bm;
+            FingerprintImg.Image = bm;
         }
 
-        /*
-
-        private void DrawData()
+        /********************************************************************/
+        private void resetDefaultSettings()
         {
-            Bitmap bm = new Bitmap( 512, 512);
-            bool Scaled = ScaleChk.Checked;
-            bool Normalize = NormalizeChk.Checked;
+            ScaleChk.Checked = true;
+            NormalizeChk.Checked = false;
+            FullViewChk.Checked = true;
+        }
 
-            if (m_data != null)
-            {
-                int x;
-                int y;
-                int Max = 0;
+        /********************************************************************/
+        private void openFile( string filename )
+        {
 
-                for (x = 0; x < 512; x++)
-                    for (y = 0; y < 512; y++)
-                    {
-                        bm.SetPixel(x, y, Color.FromArgb(255,0,0,0));
-                    }
+            FileStream fs = File.OpenRead( filename );
+            m_data = new byte[ fs.Length ];
+            fs.Read( m_data, 0, m_data.Length );
+            fs.Close();
 
-                
+            this.Text = APP_NAME + " - " + filename;
 
-                if (Scaled)
-                {
-                    y = m_data[0] * 2;
-                    for (int i = 1; i < m_data.Length; i++)
-                    {
-                        x = y;
-                        y = m_data[i] * 2;
-                        Color c = bm.GetPixel(x, y);
-                        Color nc;
+            resetDefaultSettings();
 
-                        int Current = c.R;
+            refresh( true );
+        }
 
-                        if (Current < 255) Current = Current + 1;
-
-                        nc = Color.FromArgb(255, Current, Current, Current);
-
-                        if (Max < Current) Max = Current;
-
-                        bm.SetPixel(x, y, nc);
-                        bm.SetPixel(x + 1, y, nc);
-                        bm.SetPixel(x, y + 1, nc);
-                        bm.SetPixel(x + 1, y + 1, nc);
-                    }
-
-                    if (Normalize)
-                    {
-                        if (Max < 255)
-                        {
-                            float Ratio = 255 / Max;
-
-                            for (x = 0; x < 512; x++)
-                                for (y = 0; y < 512; y++)
-                                {
-                                    Color c = bm.GetPixel(x, y);
-                                    int Normalized = (int)(c.R * Ratio) % 256;
-                                    Color nc = Color.FromArgb(255, Normalized, Normalized, Normalized);
-                                    bm.SetPixel(x, y, nc);
-                                }
-                        }
-                    }                
-                } else {
-                    Color nc = Color.FromArgb(255, 200, 200, 200);
-                    y = m_data[0] * 2;
-
-                    for (int i = 1; i < m_data.Length; i++)
-                    {
-                        x = y;
-                        y = m_data[i] * 2;
-                        
-                        bm.SetPixel(x, y, nc);
-                        bm.SetPixel(x + 1, y, nc);
-                        bm.SetPixel(x, y + 1, nc);
-                        bm.SetPixel(x + 1, y + 1, nc);
-                    }
+        /********************************************************************/
+        void refresh( bool full_refresh = false )
+        {
+            if( m_data != null ) {
+                if( full_refresh ) {
+                    m_fingerprint.calculate( m_data, 0, m_data.Length );
                 }
-
-            }
-
-            pictureBox1.Image = bm;
-        }
-        */
-
-        private void OpenBtn_Click( object sender, EventArgs e )
-        {
-            if( openFileDlg.ShowDialog() == DialogResult.OK ) {
-                if( m_data != null )
-                    m_data = null;
-
-                openFile(openFileDlg.FileName);
+                redrawFingerprint();
+                DataOverviewImg.Image = m_data_overview.update( m_data );
             }
         }
 
-        private void openFile(string filename)
-        {
+        /********************************************************************/
+        /********************************************************************/
+        /********************************************************************/
 
-                FileStream fs = File.OpenRead( filename );
-                m_data = new byte[ fs.Length ];
-                fs.Read( m_data, 0, m_data.Length );
-                fs.Close();
-
-                //DrawData();
-                //CalculateFingerPrint();
-                if( FullViewChk.Checked ) {
-                    CalculateRangeFingerPrint( 0, m_data.Length );
-                }
-                else {
-                    CalculateRangeFingerPrint( 0, m_block_size );
-                }
-                DrawFingerPrint();
-                DrawDataImage();
-
-        }
-
+        /********************************************************************/
         private void Scale_CheckedChanged( object sender, EventArgs e )
         {
             //DrawData();
-            DrawFingerPrint();
+            NormalizeChk.Enabled = ScaleChk.Checked;
+
+            redrawFingerprint();
         }
 
+        /********************************************************************/
         private void NormalizeChk_CheckedChanged( object sender, EventArgs e )
         {
-            if( ScaleChk.Checked ) {
-                //DrawData();
-                DrawFingerPrint();
-            }
+            //if( ScaleChk.Checked ) {
+            //    //DrawData();
+            redrawFingerprint();
+            //}
         }
 
-        private void DataPictureBox_Click( object sender, EventArgs e )
+        /********************************************************************/
+        private void DataOverviewImg_MouseMove( object sender, MouseEventArgs e )
         {
+            if( FullViewChk.Checked )
+                return;
 
-        }
-
-        private void pictureBox1_Click( object sender, EventArgs e )
-        {
-
-        }
-
-        private void DataPictureBox_MouseDown( object sender, MouseEventArgs e )
-        {
             if( m_data != null ) {
                 if( m_previous_y != e.Y ) {
-                    if( pictureBox1.Height > 1 ) {
-                        int position = (int)( ( (float)e.Y / (float)pictureBox1.Height ) * (float)m_data.Length );
+                    if( FingerprintImg.Height > 1 ) {
+                        int position = (int)( ( (float)e.Y / (float)FingerprintImg.Height ) * (float)m_data.Length );
                         int start = position - m_block_size / 2;
                         int end = position + m_block_size / 2;
 
-                        CalculateRangeFingerPrint( start, end );
-                        DrawFingerPrint();
-                        //DrawDataImage();
+                        m_fingerprint.calculate( m_data, start, end );
+                        redrawFingerprint();
                         m_previous_y = e.Y;
                     }
-                }
-            }
-
-        }
-
-        private void DataPictureBox_MouseHover( object sender, EventArgs e )
-        {
-
-        }
-
-        private void DataPictureBox_MouseMove( object sender, MouseEventArgs e )
-        {
-            if( m_data != null ) {
-
-                if( !FullViewChk.Checked ) {
-                    if( m_previous_y != e.Y ) {
-                        if( pictureBox1.Height > 1 ) {
-                            int position = (int)( ( (float)e.Y / (float)pictureBox1.Height ) * (float)m_data.Length );
-                            int start = position - m_block_size / 2;
-                            int end = position + m_block_size / 2;
-
-                            CalculateRangeFingerPrint( start, end );
-                            DrawFingerPrint();
-                            //DrawDataImage();
-                            m_previous_y = e.Y;
-                        }
-                    }
-
                 }
             }
         }
 
         private void checkBox1_CheckedChanged( object sender, EventArgs e )
         {
-
-            if( FullViewChk.Checked ) {
-                if( m_data != null ) {
-                    CalculateRangeFingerPrint( 0, m_data.Length );
-                    DrawFingerPrint();
-                }
-            }
+            Refresh();
         }
 
         private void textBox1_TextChanged( object sender, EventArgs e )
@@ -423,7 +206,7 @@ namespace BinView1
                     m_block_size = Convert.ToInt32( BlockSizeBox.Text );
                 }
                 catch( Exception ee ) {
-                    m_block_size = 10240;
+                    m_block_size = DEFAULT_BLOCK_SIZE;
                 }
             }
         }
@@ -431,6 +214,30 @@ namespace BinView1
         private void BlockSizeBox_Leave( object sender, EventArgs e )
         {
             BlockSizeBox.Text = m_block_size.ToString();
+            refresh( true );
+        }
+
+        private void openToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            if( openFileDlg.ShowDialog() == DialogResult.OK ) {
+                if( m_data != null )
+                    m_data = null;
+
+                openFile( openFileDlg.FileName );
+            }
+        }
+
+        private void exitToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            this.Close();
+        }
+
+        private void FingerprintImg_MouseMove( object sender, MouseEventArgs e )
+        {
+            var x = Convert.ToInt16(Math.Round( e.X / ( (double)FingerprintImg.Width / 256 ) ));
+            var y = Convert.ToInt16(Math.Round( e.Y / ( (double)FingerprintImg.Height / 256 ) ));
+
+            digramOffsetLabel.Text = "$"+x.ToString("X") + ", $" + y.ToString("X");
         }
     }
 }
