@@ -1,5 +1,5 @@
-BinView1/obj/*
-BinView1/bin/*
+Binalysis/obj/*
+Binalysis/bin/*
 .vs/
 *.swp
 *.csproj.user
