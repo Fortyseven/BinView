@@ -42,7 +42,7 @@ namespace Binalysis
 
             initTooltips();
             //openFile( "d:\\temp\\temp\\Super Mario Bros. (JU) (PRG1).nes" );
-            openFile( "d:\\temp\\temp\\KOAN Sound - Cobalt-3444478263.mp3" );
+            //openFile( "d:\\temp\\temp\\KOAN Sound - Cobalt-3444478263.mp3" );
 
 
         }
