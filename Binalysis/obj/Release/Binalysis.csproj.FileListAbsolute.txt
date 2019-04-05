@@ -1,9 +1,0 @@
-D:\Home\Dev\outside\BinView\BinView1\bin\Release\Binalysis.exe.config
-D:\Home\Dev\outside\BinView\BinView1\bin\Release\Binalysis.exe
-D:\Home\Dev\outside\BinView\BinView1\bin\Release\Binalysis.pdb
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\Binalysis.MainForm.resources
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\Binalysis.Properties.Resources.resources
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\Binalysis.csproj.GenerateResource.Cache
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\Binalysis.exe
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\Binalysis.pdb
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\Binalysis.csprojResolveAssemblyReference.cache

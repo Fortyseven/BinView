@@ -1,9 +1,0 @@
-D:\Home\Dev\outside\BinView\BinView1\bin\Release\BinView1.exe.config
-D:\Home\Dev\outside\BinView\BinView1\bin\Release\BinView1.exe
-D:\Home\Dev\outside\BinView\BinView1\bin\Release\BinView1.pdb
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\BinView1.csprojResolveAssemblyReference.cache
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\BinView1.MainForm.resources
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\BinView1.Properties.Resources.resources
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\BinView1.csproj.GenerateResource.Cache
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\BinView1.exe
-D:\Home\Dev\outside\BinView\BinView1\obj\Release\BinView1.pdb
