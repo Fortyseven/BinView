@@ -59,8 +59,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataOverview.cs" />
-    <Compile Include="Fingerprint.cs" />
+    <Compile Include="src\DataOverview.cs" />
+    <Compile Include="src\Fingerprint.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
