@@ -123,7 +123,7 @@ namespace Binalysis
                     m_fingerprint.calculate( m_data, 0, m_data.Length );
                 }
                 redrawFingerprint();
-                DataOverviewImg.Image = m_data_overview.update( m_data );
+                DataOverviewImg.Image = m_data_overview.render( m_data );
             }
         }
 

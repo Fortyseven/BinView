@@ -10,7 +10,7 @@ namespace Binalysis
 {
     class DataOverview
     {
-        public Image update( byte[] data )
+        public Image render( byte[] data )
         {
             const int Width = 128;
             int Height = (int)Math.Ceiling( (float)( data.Length ) / (float)( Width ) );
