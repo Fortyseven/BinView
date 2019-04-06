@@ -10,15 +10,27 @@ namespace Binalysis
 {
     class DataOverview
     {
+        const int WIDTH = 128;
+
+        const int MAX_HEIGHT = 1024;
+
         public Image render( byte[] data )
         {
-            const int Width = 128;
-            int Height = (int)Math.Ceiling( (float)( data.Length ) / (float)( Width ) );
+            int height = (int)Math.Ceiling( (float)( data.Length ) / (float)( WIDTH ) );
 
-            Bitmap bm = new Bitmap( Width, Height );
-            for( int i = 1; i < data.Length; i++ ) {
-                bm.SetPixel( i % Width, i / Width, Color.FromArgb( 255, 32, data[ i ], 64 ) );
+            if( height > MAX_HEIGHT )
+                height = MAX_HEIGHT;
 
+            Bitmap bm = new Bitmap( WIDTH, height );
+
+            int stride = (int)Math.Ceiling( (float)( data.Length ) / (float)( height * WIDTH ) );
+
+            for( int i = 1; i < ( WIDTH * height ) - 1; i++ ) {
+                int data_off = i * stride;
+                if( data_off >= data.Length - 2 )
+                    continue;
+                Color col = Color.FromArgb( data[ data_off ], data[ data_off + 1 ], data[ data_off + 2 ] );
+                bm.SetPixel( i % WIDTH, i / WIDTH, col );
             }
             return bm;
         }
