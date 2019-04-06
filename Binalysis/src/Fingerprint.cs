@@ -122,7 +122,7 @@ namespace Binalysis
                 return new Bitmap( 1, 1 );
 
             var bm = new Bitmap( 512, 512 );
-            var pen = new Pen( Color.FromArgb( 128, 0, 0, 0 ), 1 );
+
             var brush = new System.Drawing.SolidBrush( System.Drawing.Color.Red );
             var mult = ( bm.Width / FINGERPRINT_RES );
 
@@ -160,14 +160,6 @@ namespace Binalysis
                         }
                     }
                 }
-                //background grid
-
-                //for( int x = 0; x < FINGERPRINT_RES; x++ ) {
-                //    gr.DrawLine( pen, x * mult, 0, x * mult, bm.Height );
-                //}
-                //for( int y = 0; y < FINGERPRINT_RES; y++ ) {
-                //    gr.DrawLine( pen, 0, y * mult, bm.Width, y * mult );
-                //}
             }
             return bm;
         }
