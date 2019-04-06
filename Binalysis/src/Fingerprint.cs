@@ -13,7 +13,36 @@ namespace Binalysis
 
         Int32[,] m_finger_print = new Int32[ FINGERPRINT_RES, FINGERPRINT_RES ];
         Int32 m_max_density = 0;
-        Int32 m_avarage_density = 0;
+        Int32 m_average_density = 0;
+        bool was_calc_run = false;
+
+        int m_intensity = 1;
+
+        public int Intensity {
+            get {
+                return m_intensity;
+            }
+            set {
+                m_intensity = value;
+            }
+        }
+
+        public Int32 DensityAverage {
+            get {
+                return this.m_average_density;
+            }
+        }
+        public Int32 DensityMax {
+            get {
+                return this.m_max_density;
+            }
+        }
+
+        public Int32[,] Digrams {
+            get {
+                return this.m_finger_print;
+            }
+        }
 
         /********************************************************************/
         public void calculate( byte[] m_data, int range_start, int range_end )
@@ -26,7 +55,7 @@ namespace Binalysis
             int end;
 
             m_max_density = 0;
-            m_avarage_density = 0;
+            m_average_density = 0;
 
             // reset values
             for( x = 0; x < FINGERPRINT_RES; x++ )
@@ -76,52 +105,81 @@ namespace Binalysis
             // calculate the avaerge denisty of the fingerprint
             for( x = 0; x < FINGERPRINT_RES; x++ ) {
                 for( y = 0; y < FINGERPRINT_RES; y++ ) {
-                    m_avarage_density += m_finger_print[ x, y ];
+                    m_average_density += m_finger_print[ x, y ];
                 }
             }
 
-            m_avarage_density = m_avarage_density / ( FINGERPRINT_RES * FINGERPRINT_RES );
+            m_average_density = (int)Math.Round( ( (float)m_average_density ) / ( FINGERPRINT_RES * FINGERPRINT_RES ) );
+
+            was_calc_run = true;
         }
 
+
         /********************************************************************/
-        public void drawNormalized( Bitmap bm )
+        public Bitmap drawScaled()
         {
-            for( int x = 0; x < FINGERPRINT_RES; x++ ) {
+            if( !was_calc_run )
+                return new Bitmap( 1, 1 );
+
+            var bm = new Bitmap( 512, 512 );
+            var pen = new Pen( Color.FromArgb( 128, 0, 0, 0 ), 1 );
+            var brush = new System.Drawing.SolidBrush( System.Drawing.Color.Red );
+            var mult = ( bm.Width / FINGERPRINT_RES );
+
+
+            using( Graphics gr = Graphics.FromImage( bm ) ) {
+                gr.Clear( Color.FromArgb( 32, 32, 32 ) );
+                var average_density = m_average_density;
+
+                if( average_density < ( m_max_density / 2 ) ) {
+                    average_density /= 4;
+                }
+                // render density values
                 for( int y = 0; y < FINGERPRINT_RES; y++ ) {
-                    Int32 density = m_finger_print[ x, y ];
-                    byte v_density;
+                    for( int x = 0; x < FINGERPRINT_RES; x++ ) {
 
-                    /*
-                    if (density < m_avarage_density)
-                    {
-                        v_density = (byte)(((float)180.0 * (float)density) / (float)m_avarage_density);
-                    } else {
-                        v_density = (byte)(180.0 + ((float)75.0 * (float)density) / (float)m_max_density);
-                    }
-                    */
+                        var ox = x * mult;
+                        var oy = y * mult;
 
-                    if( density > 0 ) {
-                        v_density = (byte)( (byte)255 - (byte)( 255 / density ) );
-                    }
-                    else {
-                        v_density = 0;
-                    }
+                        var density = m_finger_print[ x, y ] * Intensity;
 
-                    Color co = Color.FromArgb( 255, v_density, v_density, v_density );
+                        if( density >= 255 ) {
+                            density = 255;
+                        }
 
+                        if( density > 0 ) {
+                            if( ( x >= 32 && x <= 125 ) && ( y >= 32 && y <= 125 ) ) {
+                                brush.Color = Color.FromArgb( density, (int)( density / 1.5 ), 0 );
+                            }
+                            else {
+                                brush.Color = Color.FromArgb( density, density, density );
+                            }
 
-                    if( m_finger_print[ x, y ] > 0 ) {
-                        bm.SetPixel( x, y, co );
+                            var pos = new Rectangle( ox, oy, mult, mult );
+                            gr.FillRectangle( brush, pos );
+                        }
                     }
                 }
+                //background grid
+
+                //for( int x = 0; x < FINGERPRINT_RES; x++ ) {
+                //    gr.DrawLine( pen, x * mult, 0, x * mult, bm.Height );
+                //}
+                //for( int y = 0; y < FINGERPRINT_RES; y++ ) {
+                //    gr.DrawLine( pen, 0, y * mult, bm.Width, y * mult );
+                //}
             }
+            return bm;
         }
 
         /********************************************************************/
-        public void drawScaled( Bitmap bm )
+        public Bitmap drawScaledOld()
         {
-            for( int x = 0; x < FINGERPRINT_RES; x++ ) {
-                for( int y = 0; y < FINGERPRINT_RES; y++ ) {
+            var bm = new Bitmap( 256, 256 );
+
+            for( int y = 0; y < FINGERPRINT_RES; y++ ) {
+                for( int x = 0; x < FINGERPRINT_RES; x++ ) {
+
                     Int32 density = m_finger_print[ x, y ];
                     byte v_density;
 
@@ -137,21 +195,26 @@ namespace Binalysis
                     }
                 }
             }
+            return bm;
         }
 
         /********************************************************************/
-        public void drawRaw( Bitmap bm )
+        public Bitmap drawRaw()
         {
+            var bm = new Bitmap( 256, 256 );
             Color active = Color.FromArgb( 255, 255, 255, 255 );
             //Color iniactive = Color.FromArgb(255, 255, 255, 255);
 
-            for( int x = 0; x < FINGERPRINT_RES; x++ ) {
-                for( int y = 0; y < FINGERPRINT_RES; y++ ) {
+            for( int y = 0; y < FINGERPRINT_RES; y++ ) {
+                for( int x = 0; x < FINGERPRINT_RES; x++ ) {
+
                     if( m_finger_print[ x, y ] > 0 ) {
                         bm.SetPixel( x, y, active );
                     }
+
                 }
             }
+            return bm;
         }
     }
 }

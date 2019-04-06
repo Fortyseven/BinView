@@ -30,7 +30,6 @@
         {
             this.BlockSizeBox = new System.Windows.Forms.TextBox();
             this.FullViewChk = new System.Windows.Forms.CheckBox();
-            this.NormalizeChk = new System.Windows.Forms.CheckBox();
             this.ScaleChk = new System.Windows.Forms.CheckBox();
             this.contentPanel = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
@@ -44,9 +43,12 @@
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolPanel = new System.Windows.Forms.Panel();
+            this.intensitySlider = new System.Windows.Forms.TrackBar();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.digramOffsetLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.digramValue = new System.Windows.Forms.ToolStripStatusLabel();
             this.contentPanel.SuspendLayout();
             this.panel4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.FingerprintImg)).BeginInit();
@@ -54,6 +56,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.DataOverviewImg)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.toolPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.intensitySlider)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -62,7 +65,7 @@
             this.BlockSizeBox.AccessibleDescription = "";
             this.BlockSizeBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.BlockSizeBox.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.BlockSizeBox.Location = new System.Drawing.Point(535, 6);
+            this.BlockSizeBox.Location = new System.Drawing.Point(843, 6);
             this.BlockSizeBox.Name = "BlockSizeBox";
             this.BlockSizeBox.Size = new System.Drawing.Size(100, 23);
             this.BlockSizeBox.TabIndex = 4;
@@ -82,24 +85,7 @@
             this.FullViewChk.TabIndex = 3;
             this.FullViewChk.Text = "Full Range";
             this.FullViewChk.UseVisualStyleBackColor = true;
-            this.FullViewChk.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
-            // 
-            // NormalizeChk
-            // 
-            this.NormalizeChk.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.NormalizeChk.AutoSize = true;
-            this.NormalizeChk.Checked = true;
-            this.NormalizeChk.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.NormalizeChk.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.NormalizeChk.Location = new System.Drawing.Point(85, 7);
-            this.NormalizeChk.Name = "NormalizeChk";
-            this.NormalizeChk.Size = new System.Drawing.Size(106, 27);
-            this.NormalizeChk.TabIndex = 2;
-            this.NormalizeChk.Text = "Normalize";
-            this.NormalizeChk.UseVisualStyleBackColor = true;
-            this.NormalizeChk.CheckedChanged += new System.EventHandler(this.NormalizeChk_CheckedChanged);
+            this.FullViewChk.CheckedChanged += new System.EventHandler(this.FullViewChk_CheckedChanged);
             // 
             // ScaleChk
             // 
@@ -127,7 +113,7 @@
             this.contentPanel.Controls.Add(this.panel3);
             this.contentPanel.Location = new System.Drawing.Point(3, 31);
             this.contentPanel.Name = "contentPanel";
-            this.contentPanel.Size = new System.Drawing.Size(656, 502);
+            this.contentPanel.Size = new System.Drawing.Size(964, 756);
             this.contentPanel.TabIndex = 1;
             // 
             // panel4
@@ -137,7 +123,7 @@
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(128, 0);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(528, 502);
+            this.panel4.Size = new System.Drawing.Size(836, 756);
             this.panel4.TabIndex = 1;
             // 
             // FingerprintImg
@@ -145,7 +131,7 @@
             this.FingerprintImg.Dock = System.Windows.Forms.DockStyle.Fill;
             this.FingerprintImg.Location = new System.Drawing.Point(0, 0);
             this.FingerprintImg.Name = "FingerprintImg";
-            this.FingerprintImg.Size = new System.Drawing.Size(528, 502);
+            this.FingerprintImg.Size = new System.Drawing.Size(836, 756);
             this.FingerprintImg.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.FingerprintImg.TabIndex = 0;
             this.FingerprintImg.TabStop = false;
@@ -158,19 +144,21 @@
             this.panel3.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel3.Location = new System.Drawing.Point(0, 0);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(128, 502);
+            this.panel3.Size = new System.Drawing.Size(128, 756);
             this.panel3.TabIndex = 0;
             // 
             // DataOverviewImg
             // 
             this.DataOverviewImg.BackColor = System.Drawing.Color.MidnightBlue;
+            this.DataOverviewImg.Cursor = System.Windows.Forms.Cursors.Cross;
             this.DataOverviewImg.Dock = System.Windows.Forms.DockStyle.Fill;
             this.DataOverviewImg.Location = new System.Drawing.Point(0, 0);
             this.DataOverviewImg.Name = "DataOverviewImg";
-            this.DataOverviewImg.Size = new System.Drawing.Size(128, 502);
+            this.DataOverviewImg.Size = new System.Drawing.Size(128, 756);
             this.DataOverviewImg.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.DataOverviewImg.TabIndex = 0;
             this.DataOverviewImg.TabStop = false;
+            this.DataOverviewImg.Click += new System.EventHandler(this.DataOverviewImg_Click);
             this.DataOverviewImg.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DataOverviewImg_MouseMove);
             // 
             // openFileDlg
@@ -181,7 +169,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(444, 6);
+            this.label1.Location = new System.Drawing.Point(752, 6);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(85, 23);
             this.label1.TabIndex = 5;
@@ -195,7 +183,7 @@
             this.fileToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(662, 28);
+            this.menuStrip1.Size = new System.Drawing.Size(970, 28);
             this.menuStrip1.TabIndex = 3;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -212,7 +200,7 @@
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(173, 26);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -221,7 +209,7 @@
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.ShortcutKeyDisplayString = "";
             this.exitToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(173, 26);
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
@@ -229,25 +217,41 @@
             // 
             this.toolPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.toolPanel.Controls.Add(this.intensitySlider);
             this.toolPanel.Controls.Add(this.ScaleChk);
-            this.toolPanel.Controls.Add(this.NormalizeChk);
             this.toolPanel.Controls.Add(this.FullViewChk);
             this.toolPanel.Controls.Add(this.label1);
             this.toolPanel.Controls.Add(this.BlockSizeBox);
-            this.toolPanel.Location = new System.Drawing.Point(0, 530);
+            this.toolPanel.Location = new System.Drawing.Point(0, 784);
             this.toolPanel.Name = "toolPanel";
-            this.toolPanel.Size = new System.Drawing.Size(662, 35);
+            this.toolPanel.Size = new System.Drawing.Size(970, 35);
             this.toolPanel.TabIndex = 4;
+            // 
+            // intensitySlider
+            // 
+            this.intensitySlider.AccessibleDescription = "";
+            this.intensitySlider.AccessibleName = "";
+            this.intensitySlider.Location = new System.Drawing.Point(310, 6);
+            this.intensitySlider.Maximum = 100;
+            this.intensitySlider.Minimum = 1;
+            this.intensitySlider.Name = "intensitySlider";
+            this.intensitySlider.Size = new System.Drawing.Size(209, 56);
+            this.intensitySlider.TabIndex = 8;
+            this.intensitySlider.TickStyle = System.Windows.Forms.TickStyle.None;
+            this.intensitySlider.Value = 1;
+            this.intensitySlider.ValueChanged += new System.EventHandler(this.intensitySlider_ValueChanged);
             // 
             // statusStrip1
             // 
             this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1,
-            this.digramOffsetLabel});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 568);
+            this.digramOffsetLabel,
+            this.toolStripStatusLabel2,
+            this.digramValue});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 822);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(662, 25);
+            this.statusStrip1.Size = new System.Drawing.Size(970, 25);
             this.statusStrip1.TabIndex = 6;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -263,11 +267,23 @@
             this.digramOffsetLabel.Size = new System.Drawing.Size(28, 20);
             this.digramOffsetLabel.Text = "0,0";
             // 
+            // toolStripStatusLabel2
+            // 
+            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(32, 20);
+            this.toolStripStatusLabel2.Text = "Val:";
+            // 
+            // digramValue
+            // 
+            this.digramValue.Name = "digramValue";
+            this.digramValue.Size = new System.Drawing.Size(21, 20);
+            this.digramValue.Text = "--";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(662, 593);
+            this.ClientSize = new System.Drawing.Size(970, 847);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.contentPanel);
@@ -291,6 +307,7 @@
             this.menuStrip1.PerformLayout();
             this.toolPanel.ResumeLayout(false);
             this.toolPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.intensitySlider)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -305,7 +322,6 @@
         private System.Windows.Forms.OpenFileDialog openFileDlg;
         private System.Windows.Forms.PictureBox FingerprintImg;
         private System.Windows.Forms.CheckBox ScaleChk;
-        private System.Windows.Forms.CheckBox NormalizeChk;
         private System.Windows.Forms.PictureBox DataOverviewImg;
         private System.Windows.Forms.CheckBox FullViewChk;
         private System.Windows.Forms.TextBox BlockSizeBox;
@@ -318,6 +334,9 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripStatusLabel digramOffsetLabel;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
+        private System.Windows.Forms.ToolStripStatusLabel digramValue;
+        private System.Windows.Forms.TrackBar intensitySlider;
     }
 }
 

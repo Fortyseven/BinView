@@ -36,7 +36,7 @@
             this.debugLogBox.Location = new System.Drawing.Point(0, 0);
             this.debugLogBox.Name = "debugLogBox";
             this.debugLogBox.ReadOnly = true;
-            this.debugLogBox.Size = new System.Drawing.Size(282, 253);
+            this.debugLogBox.Size = new System.Drawing.Size(391, 253);
             this.debugLogBox.TabIndex = 1;
             this.debugLogBox.Text = "";
             // 
@@ -44,7 +44,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(282, 253);
+            this.ClientSize = new System.Drawing.Size(391, 253);
             this.Controls.Add(this.debugLogBox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.MaximizeBox = false;
