@@ -135,6 +135,7 @@
             this.FingerprintImg.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.FingerprintImg.TabIndex = 0;
             this.FingerprintImg.TabStop = false;
+            this.FingerprintImg.Paint += new System.Windows.Forms.PaintEventHandler(this.FingerprintImg_Paint);
             this.FingerprintImg.MouseMove += new System.Windows.Forms.MouseEventHandler(this.FingerprintImg_MouseMove);
             // 
             // panel3

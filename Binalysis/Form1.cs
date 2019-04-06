@@ -53,16 +53,16 @@ namespace Binalysis
         /********************************************************************/
         private void redrawFingerprint()
         {
-            Bitmap bm = null;
+            //Bitmap bm = null;
 
             if( ScaleChk.Checked ) {
-                bm = m_fingerprint.drawScaled();
+                m_fingerprint.drawScaled();
             }
             else {
-                bm = m_fingerprint.drawRaw();
+                m_fingerprint.drawRaw();
             }
-
-            FingerprintImg.Image = bm;
+            this.Refresh();
+            //FingerprintImg.Image = bm;
         }
 
         /********************************************************************/
@@ -234,6 +234,13 @@ namespace Binalysis
         {
             FullViewChk.Checked = false;
             redrawFingerprint();
+        }
+
+        private void FingerprintImg_Paint( object sender, PaintEventArgs e )
+        {
+            //redrawFingerprint();
+            e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
+            e.Graphics.DrawImage( m_fingerprint.Bitmap, new Rectangle( 0, 0, FingerprintImg.Width, FingerprintImg.Height ) );
         }
     }
 }

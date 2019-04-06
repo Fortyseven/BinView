@@ -14,9 +14,16 @@ namespace Binalysis
         Int32[,] m_finger_print = new Int32[ FINGERPRINT_RES, FINGERPRINT_RES ];
         Int32 m_max_density = 0;
         Int32 m_average_density = 0;
-        bool was_calc_run = false;
+        Bitmap m_bitmap = null;
+        bool m_force_redraw = false;
 
         int m_intensity = 1;
+
+        public Bitmap Bitmap {
+            get {
+                return this.m_bitmap;
+            }
+        }
 
         public int Intensity {
             get {
@@ -24,9 +31,9 @@ namespace Binalysis
             }
             set {
                 m_intensity = value;
+                ForceRefresh();
             }
         }
-
         public Int32 DensityAverage {
             get {
                 return this.m_average_density;
@@ -43,6 +50,12 @@ namespace Binalysis
                 return this.m_finger_print;
             }
         }
+
+        public void ForceRefresh()
+        {
+            m_force_redraw = true;
+        }
+
 
         /********************************************************************/
         public void calculate( byte[] m_data, int range_start, int range_end )
@@ -111,23 +124,24 @@ namespace Binalysis
 
             m_average_density = (int)Math.Round( ( (float)m_average_density ) / ( FINGERPRINT_RES * FINGERPRINT_RES ) );
 
-            was_calc_run = true;
+            m_force_redraw = true;
         }
 
-
         /********************************************************************/
-        public Bitmap drawScaled()
+        public void drawScaled()
         {
-            if( !was_calc_run )
-                return new Bitmap( 1, 1 );
+            if( !m_force_redraw ) {
+                return;
+            }
 
-            var bm = new Bitmap( 512, 512 );
+            m_bitmap = new Bitmap( 256, 256 );
 
             var brush = new System.Drawing.SolidBrush( System.Drawing.Color.Red );
-            var mult = ( bm.Width / FINGERPRINT_RES );
+            var mult = ( m_bitmap.Width / FINGERPRINT_RES );
 
 
-            using( Graphics gr = Graphics.FromImage( bm ) ) {
+            using( Graphics gr = Graphics.FromImage( m_bitmap ) ) {
+                gr.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
                 gr.Clear( Color.FromArgb( 32, 32, 32 ) );
                 var average_density = m_average_density;
 
@@ -161,52 +175,29 @@ namespace Binalysis
                     }
                 }
             }
-            return bm;
+            m_force_redraw = false;
         }
 
         /********************************************************************/
-        public Bitmap drawScaledOld()
+        public void drawRaw()
         {
-            var bm = new Bitmap( 256, 256 );
-
-            for( int y = 0; y < FINGERPRINT_RES; y++ ) {
-                for( int x = 0; x < FINGERPRINT_RES; x++ ) {
-
-                    Int32 density = m_finger_print[ x, y ];
-                    byte v_density;
-
-                    if( density < 256 )
-                        v_density = (byte)density;
-                    else
-                        v_density = 255;
-
-                    Color co = Color.FromArgb( 255, v_density, v_density, v_density );
-
-                    if( m_finger_print[ x, y ] > 0 ) {
-                        bm.SetPixel( x, y, co );
-                    }
-                }
+            if( !m_force_redraw ) {
+                return;
             }
-            return bm;
-        }
 
-        /********************************************************************/
-        public Bitmap drawRaw()
-        {
-            var bm = new Bitmap( 256, 256 );
+            m_bitmap = new Bitmap( 256, 256 );
             Color active = Color.FromArgb( 255, 255, 255, 255 );
-            //Color iniactive = Color.FromArgb(255, 255, 255, 255);
 
             for( int y = 0; y < FINGERPRINT_RES; y++ ) {
                 for( int x = 0; x < FINGERPRINT_RES; x++ ) {
 
                     if( m_finger_print[ x, y ] > 0 ) {
-                        bm.SetPixel( x, y, active );
+                        m_bitmap.SetPixel( x, y, active );
                     }
 
                 }
             }
-            return bm;
+            m_force_redraw = false;
         }
     }
 }
