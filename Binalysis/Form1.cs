@@ -26,7 +26,7 @@ namespace Binalysis
 
         int m_previous_y = -1;
 
-
+        FormDebug debugForm = null;
 
         /********************************************************************/
         public MainForm()
@@ -41,10 +41,6 @@ namespace Binalysis
             BlockSizeBox.Text = m_block_size.ToString();
 
             initTooltips();
-            //openFile( "d:\\temp\\temp\\Super Mario Bros. (JU) (PRG1).nes" );
-            //openFile( "d:\\temp\\temp\\KOAN Sound - Cobalt-3444478263.mp3" );
-
-
         }
 
         /********************************************************************/
@@ -137,6 +133,20 @@ namespace Binalysis
             resetDefaultSettings();
 
             refresh( true );
+
+            Log( "Opened " + filename + "\n" );
+        }
+
+        void Log( string msg )
+        {
+            if( debugForm == null ) {
+                debugForm = new FormDebug();
+                debugForm.Show();
+                debugForm.Location = new Point( this.Location.X + this.Width, this.Location.Y );
+            }
+
+            debugForm.debugLogBox.Text += msg;
+
         }
 
         /********************************************************************/
@@ -234,10 +244,22 @@ namespace Binalysis
 
         private void FingerprintImg_MouseMove( object sender, MouseEventArgs e )
         {
-            var x = Convert.ToInt16(Math.Round( e.X / ( (double)FingerprintImg.Width / 256 ) ));
-            var y = Convert.ToInt16(Math.Round( e.Y / ( (double)FingerprintImg.Height / 256 ) ));
+            var x = Convert.ToInt16( Math.Round( e.X / ( (double)FingerprintImg.Width / 256 ) ) );
+            var y = Convert.ToInt16( Math.Round( e.Y / ( (double)FingerprintImg.Height / 256 ) ) );
 
-            digramOffsetLabel.Text = "$"+x.ToString("X") + ", $" + y.ToString("X");
+            digramOffsetLabel.Text = "$" + x.ToString( "X" ) + ", $" + y.ToString( "X" );
+        }
+
+        private void MainForm_Load( object sender, EventArgs e )
+        {
+            openFile( "d:\\temp\\temp\\Super Mario Bros. (JU) (PRG1).nes" );
+            //openFile( "d:\\temp\\temp\\KOAN Sound - Cobalt-3444478263.mp3" );
+        }
+
+        private void MainForm_KeyPress( object sender, KeyPressEventArgs e )
+        {
+            if( e.KeyChar == 27 )
+                this.Close();
         }
     }
 }
