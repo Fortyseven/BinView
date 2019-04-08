@@ -40,6 +40,10 @@ namespace Binalysis
 
             BlockSizeBox.Text = m_block_size.ToString();
 
+            this.AllowDrop = true;
+            this.DragEnter += MainForm_DragEnter;
+            this.DragDrop += MainForm_DragDrop;
+
             initTooltips();
         }
 
@@ -116,8 +120,6 @@ namespace Binalysis
 
         /********************************************************************/
         /********************************************************************/
-        /********************************************************************/
-
         /********************************************************************/
         private void DataOverviewImg_MouseMove( object sender, MouseEventArgs e )
         {
@@ -220,5 +222,21 @@ namespace Binalysis
         {
             selectionLabel.Text = m_minimap.GetSelectedStartOff.ToString() + " to " + m_minimap.GetSelectedEndOff.ToString();
         }
+
+        /********************************************************************/
+        private void MainForm_DragDrop( object sender, DragEventArgs e )
+        {
+            string[] files = (string[])e.Data.GetData( DataFormats.FileDrop );
+            if( files.Length == 1 )
+                openFile( files[ 0 ] );
+        }
+
+        /********************************************************************/
+        private void MainForm_DragEnter( object sender, DragEventArgs e )
+        {
+            if( e.Data.GetDataPresent( DataFormats.FileDrop ) )
+                e.Effect = DragDropEffects.Copy;
+        }
+
     }
 }
