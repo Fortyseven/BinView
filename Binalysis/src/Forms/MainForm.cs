@@ -18,7 +18,6 @@ namespace Binalysis
         const int DEFAULT_BLOCK_SIZE = 10240;
 
         Fingerprint m_fingerprint;
-        DataOverview m_data_overview;
 
         byte[] m_data;
 
@@ -26,7 +25,7 @@ namespace Binalysis
 
         int m_previous_y = -1;
 
-        FormDebug debugForm = null;
+        Minimap m_minimap;
 
         /********************************************************************/
         public MainForm()
@@ -34,7 +33,8 @@ namespace Binalysis
             InitializeComponent();
 
             m_fingerprint = new Fingerprint();
-            m_data_overview = new DataOverview();
+            m_minimap = new Minimap( this );
+            mapPanel.Controls.Add( m_minimap );
 
             m_data = null;
 
@@ -53,23 +53,13 @@ namespace Binalysis
         /********************************************************************/
         private void redrawFingerprint()
         {
-            //Bitmap bm = null;
-
-            if( ScaleChk.Checked ) {
-                m_fingerprint.drawScaled();
-            }
-            else {
-                m_fingerprint.drawRaw();
-            }
+            m_fingerprint.drawScaled();
             this.Refresh();
-            //FingerprintImg.Image = bm;
         }
 
         /********************************************************************/
         private void resetDefaultSettings()
         {
-            ScaleChk.Checked = true;
-            FullViewChk.Checked = true;
             intensitySlider.Value = 8;
         }
 
@@ -88,25 +78,20 @@ namespace Binalysis
 
             resetDefaultSettings();
 
+            m_minimap.Data = m_data;
             refresh( true );
 
             LogLn( "----------------------------" );
-            LogLn( "Opened \"" + base_name + "\"" );
+            LogLn( "Opened \"" + filename + "\"" );
             LogLn( "File size: " + flen );
-            LogLn( "Avg density: " + this.m_fingerprint.DensityAverage );
-            LogLn( "Max density: " + this.m_fingerprint.DensityMax );
+            LogLn( "Avg density: " + this.m_fingerprint.Digrams.AverageDenisty );
+            LogLn( "Max density: " + this.m_fingerprint.Digrams.MaxDenisty );
         }
 
         /********************************************************************/
         void Log( string msg )
         {
-            if( debugForm == null ) {
-                debugForm = new FormDebug();
-                debugForm.Show();
-                debugForm.Location = new Point( this.Location.X + this.Width, this.Location.Y );
-            }
-
-            debugForm.debugLogBox.Text += msg;
+            debugLogBox.Text += msg;
         }
 
         /********************************************************************/
@@ -120,10 +105,12 @@ namespace Binalysis
         {
             if( m_data != null ) {
                 if( full_refresh ) {
-                    m_fingerprint.calculate( m_data, 0, m_data.Length );
+                    m_fingerprint.Digrams.Calculate( m_data, 0, m_data.Length );
                 }
                 redrawFingerprint();
-                DataOverviewImg.Image = m_data_overview.render( m_data );
+                mapPanel.Invalidate();
+
+                //DataOverviewImg.Image = m_data_overview.render( m_data );
             }
         }
 
@@ -132,17 +119,8 @@ namespace Binalysis
         /********************************************************************/
 
         /********************************************************************/
-        private void Scale_CheckedChanged( object sender, EventArgs e )
-        {
-            redrawFingerprint();
-        }
-
-        /********************************************************************/
         private void DataOverviewImg_MouseMove( object sender, MouseEventArgs e )
         {
-            if( FullViewChk.Checked )
-                return;
-
             if( m_data != null ) {
                 if( m_previous_y != e.Y ) {
                     if( FingerprintImg.Height > 1 ) {
@@ -150,7 +128,7 @@ namespace Binalysis
                         int start = position - m_block_size / 2;
                         int end = position + m_block_size / 2;
 
-                        m_fingerprint.calculate( m_data, start, end );
+                        m_fingerprint.Digrams.Calculate( m_data, start, end );
                         redrawFingerprint();
                         m_previous_y = e.Y;
                     }
@@ -158,13 +136,7 @@ namespace Binalysis
             }
         }
 
-        private void FullViewChk_CheckedChanged( object sender, EventArgs e )
-        {
-            refresh( true );
-            BlockSizeBox.Enabled = !FullViewChk.Checked;
-        }
-
-        private void textBox1_TextChanged( object sender, EventArgs e )
+        private void BlockSizeBox_TextChanged( object sender, EventArgs e )
         {
             if( BlockSizeBox.Text.Length > 0 ) {
                 try {
@@ -179,6 +151,7 @@ namespace Binalysis
         private void BlockSizeBox_Leave( object sender, EventArgs e )
         {
             BlockSizeBox.Text = m_block_size.ToString();
+            LogLn( "* Block size changed to " + m_block_size );
             refresh( true );
         }
 
@@ -215,7 +188,8 @@ namespace Binalysis
         {
             //openFile( "d:\\temp\\temp\\Super Mario Bros. (JU) (PRG1).nes" );
             //openFile( "d:\\temp\\temp\\KOAN Sound - Cobalt-3444478263.mp3" );
-            openFile( "D:\\Temp\\halloween\\ripnes\\outfile.nes" );
+            //openFile( "D:\\Temp\\halloween\\ripnes\\outfile.nes" );
+            openFile( "D:\\Home\\SNES Classic\\toby-hakchi2.30\\hakchi.exe" );
         }
 
         private void MainForm_KeyPress( object sender, KeyPressEventArgs e )
@@ -232,7 +206,6 @@ namespace Binalysis
 
         private void DataOverviewImg_Click( object sender, EventArgs e )
         {
-            FullViewChk.Checked = false;
             redrawFingerprint();
         }
 
@@ -241,6 +214,11 @@ namespace Binalysis
             //redrawFingerprint();
             e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
             e.Graphics.DrawImage( m_fingerprint.Bitmap, new Rectangle( 0, 0, FingerprintImg.Width, FingerprintImg.Height ) );
+        }
+
+        private void mapPanel_Paint( object sender, PaintEventArgs e )
+        {
+            selectionLabel.Text = m_minimap.GetSelectedStartOff.ToString() + " to " + m_minimap.GetSelectedEndOff.ToString();
         }
     }
 }

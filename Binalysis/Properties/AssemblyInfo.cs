@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct( "BinView" )]
+[assembly: AssemblyProduct( "Binalysis" )]
 [assembly: AssemblyCopyright( "Copyright ©  2019" )]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
