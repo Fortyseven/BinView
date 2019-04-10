@@ -3,3 +3,4 @@
 *.res diff
 *.resx diff
 *.sln diff
+*.config diff
