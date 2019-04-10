@@ -67,7 +67,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Digrams.cs" />
+    <Compile Include="src\Parsers\Fingerprints\Digrams.cs" />
+    <Compile Include="src\Parsers\Fingerprints\FingerprintDiagramRaw.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Parsers\Parser.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="src\Parsers\Parser.Designer.cs">
+      <DependentUpon>Parser.cs</DependentUpon>
+    </Compile>
     <Compile Include="src\UIComponents\DataDrawer.cs" />
     <Compile Include="src\UIComponents\Minimap.cs">
       <SubType>UserControl</SubType>
@@ -75,7 +84,9 @@
     <Compile Include="src\UIComponents\Minimap.Designer.cs">
       <DependentUpon>Minimap.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\Fingerprint.cs" />
+    <Compile Include="src\Parsers\Fingerprints\FingerprintDigramParser.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="src\Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -87,6 +98,9 @@
     <Compile Include="Settings.cs" />
     <EmbeddedResource Include="src\Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="src\Parsers\Parser.resx">
+      <DependentUpon>Parser.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="src\UIComponents\Minimap.resx">
       <DependentUpon>Minimap.cs</DependentUpon>

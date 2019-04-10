@@ -26,7 +26,7 @@ namespace Binalysis
         /***************************************************************/
         public long GetSelectedStartOff {
             get {
-                if( !m_datadrawer_overview.HasSelection )
+                if( !m_datadrawer_overview.HasSubSelection )
                     return 0;
 
                 return m_datadrawer_overview.SelectionOffsetStartInBytes;
@@ -34,7 +34,7 @@ namespace Binalysis
         }
         public long GetSelectedEndOff {
             get {
-                if( !m_datadrawer_overview.HasSelection )
+                if( !m_datadrawer_overview.HasSubSelection )
                     return m_data.Length;
 
                 return m_datadrawer_overview.IsDragging ?
@@ -85,9 +85,10 @@ namespace Binalysis
         public void onSelectionMade( long start, long end )
         {
             m_datadrawer_mag = new DataDrawer( this, ref m_data, magImg, start, end, true );
+            Owner.OnSelectionUpdated();
 
-            Invalidate();
-            Parent.Invalidate();
+            //Invalidate();
+            //Parent.Invalidate();
         }
 
         /***************************************************************/

@@ -10,19 +10,19 @@ namespace Binalysis
     {
         public const int RESOLUTION = 256;
 
-        private Int32[,] Values { get; set; } = new Int32[ RESOLUTION, RESOLUTION ];
-        public Int32 this[ int x, int y ] { get { return Values[ x, y ]; } }
-        public Int32 MaxDenisty { get; set; } = 0;
-        public Int32 AverageDenisty { get; set; } = 0;
+        private long[,] Values { get; set; } = new long[ RESOLUTION, RESOLUTION ];
+        public long this[ int x, int y ] { get { return Values[ x, y ]; } }
+        public long MaxDenisty { get; set; } = 0;
+        public long AverageDenisty { get; set; } = 0;
 
-        public void Calculate( byte[] m_data, int range_start, int range_end )
+        public void Calculate( byte[] m_data, long range_start, long range_end )
         {
             if( m_data == null )
                 return;
 
             int x, y;
-            int start;
-            int end;
+            long start;
+            long end;
 
             MaxDenisty = 0;
             AverageDenisty = 0;
@@ -48,17 +48,19 @@ namespace Binalysis
                     end = 0;
             }
 
-            if( end >= m_data.Length ) {
-                end = m_data.Length - 1;
-                if( start >= m_data.Length - 1 )
+            if( end > m_data.Length ) {
+                end = m_data.Length;
+                if( start > m_data.Length - 1 )
                     start = m_data.Length - 1;
             }
+            if( m_data.Length == 0 )
+                return;
 
             // get the first byte?
             y = m_data[ start ];
 
             // iterate over data range
-            for( int i = start + 1; i < end; i++ ) {
+            for( var i = start + 1; i < end; i++ ) {
                 x = y;
                 y = m_data[ i ];
 
@@ -80,8 +82,6 @@ namespace Binalysis
             }
 
             AverageDenisty = (int)Math.Round( ( (float)AverageDenisty ) / ( RESOLUTION * RESOLUTION ) );
-
-            //m_force_redraw = true;
         }
     }
 }

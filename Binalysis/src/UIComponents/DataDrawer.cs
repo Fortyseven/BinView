@@ -10,8 +10,9 @@ namespace Binalysis
 {
     class DataDrawer
     {
-        const int WIDTH = 128;
         const int MAX_HEIGHT = 1024;
+
+        int Width { get; set; } = 128;
 
         public byte[] Data { get; set; }
 
@@ -33,23 +34,23 @@ namespace Binalysis
 
         public long SelectionOffsetStartInBytes {
             get {
-                return ( SelectionOffsetStart * WIDTH * Stride );
+                return ( SelectionOffsetStart * Width * Stride );
             }
         }
         public long SelectionOffsetEndInBytes {
             get {
-                return ( SelectionOffsetEnd * WIDTH * Stride );
+                return ( SelectionOffsetEnd * Width * Stride );
             }
         }
         public long LastDragYInBytes {
             get {
-                return ( LastDragY * WIDTH * Stride );
+                return ( LastDragY * Width * Stride );
             }
         }
 
-        public bool HasSelection {
+        public bool HasSubSelection {
             get {
-                return ( SelectionOffsetStart > -1 && SelectionOffsetEnd > -1 );
+                return ( SelectionOffsetStart > BoundStart && SelectionOffsetEnd < BoundEnd );
             }
         }
 
@@ -103,8 +104,8 @@ namespace Binalysis
         /**********************************************/
         public void ResetSelection()
         {
-            SelectionOffsetStart = -1;
-            SelectionOffsetEnd = -1;
+            SelectionOffsetStart = 0;
+            SelectionOffsetEnd = BoundEnd;
         }
 
         /**********************************************/
@@ -116,18 +117,18 @@ namespace Binalysis
 
             if( m_cached_render == null ) {
 
-                RenderedHeight = (int)Math.Ceiling( (float)( BoundLength ) / (float)( WIDTH ) );
+                RenderedHeight = (int)Math.Ceiling( (float)( BoundLength ) / (float)( Width ) );
 
                 if( RenderedHeight > MAX_HEIGHT )
                     RenderedHeight = MAX_HEIGHT;
 
-                m_cached_render = new Bitmap( WIDTH, (int)RenderedHeight );
+                m_cached_render = new Bitmap( Width, (int)RenderedHeight );
 
-                Stride = (int)Math.Ceiling( (float)( BoundLength ) / (float)( RenderedHeight * WIDTH ) );
+                Stride = (int)Math.Ceiling( (float)( BoundLength ) / (float)( RenderedHeight * Width ) );
 
                 long data_ptr = BoundStart;
 
-                for( int i = 0; i < ( WIDTH * RenderedHeight ); i++ ) {
+                for( int i = 0; i < ( Width * RenderedHeight ); i++ ) {
                     data_ptr += Stride;
 
                     if( data_ptr >= BoundEnd - 2 )
@@ -135,7 +136,7 @@ namespace Binalysis
 
                     Color col = Color.FromArgb( Data[ data_ptr ], Data[ data_ptr + 1 ], Data[ data_ptr + 2 ] );
 
-                    m_cached_render.SetPixel( i % WIDTH, i / WIDTH, col );
+                    m_cached_render.SetPixel( i % Width, i / Width, col );
                 }
             }
 
@@ -153,7 +154,7 @@ namespace Binalysis
                 if( IsDragging ) {
                     var x = 0;
                     var y = SelectionOffsetStart;
-                    var w = WIDTH - 1;
+                    var w = Width - 1;
                     var h = LastDragY - SelectionOffsetStart;
 
                     if( LastDragY < SelectionOffsetStart ) {
@@ -169,16 +170,16 @@ namespace Binalysis
 
                     // draw the top bit
                     if( SelectionOffsetStart >= 0 ) {
-                        gr.FillRectangle( brush, 0, 0, WIDTH, SelectionOffsetStart );
+                        gr.FillRectangle( brush, 0, 0, Width, SelectionOffsetStart );
                     }
 
                     // draw the bottom bit
                     if( SelectionOffsetEnd >= 0 ) {
-                        gr.FillRectangle( brush, 0, SelectionOffsetEnd, WIDTH, RenderedHeight - SelectionOffsetEnd );
+                        gr.FillRectangle( brush, 0, SelectionOffsetEnd, Width, RenderedHeight - SelectionOffsetEnd );
                     }
                 }
 
-                gr.DrawLine( new Pen( Color.White, 1 ), 0, LastDragY, WIDTH, LastDragY );
+                gr.DrawLine( new Pen( Color.White, 1 ), 0, LastDragY, Width, LastDragY );
             }
         }
 
@@ -265,7 +266,7 @@ namespace Binalysis
                 SelectionOffsetStart = temp;
             }
 
-            if( HasSelection ) {
+            if( HasSubSelection ) {
                 Owner.onSelectionMade(
                         SelectionOffsetStartInBytes,
                         SelectionOffsetEndInBytes
