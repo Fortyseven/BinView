@@ -13,7 +13,15 @@ namespace Binalysis
 
         public byte[] Data { get; set; } = new byte[ 0 ] { };
 
-        int m_block_size = DEFAULT_BLOCK_SIZE;
+        //int m_block_size = DEFAULT_BLOCK_SIZE;
+
+        //protected override CreateParams CreateParams {
+        //    get {
+        //        CreateParams cp = base.CreateParams;
+        //        cp.ExStyle |= 0x02000000;
+        //        return cp;
+        //    }
+        //}
 
         Minimap m_minimap;
 
@@ -24,20 +32,34 @@ namespace Binalysis
         {
             InitializeComponent();
 
+            DoubleBuffered = true;
+
             m_minimap = new Minimap( this );
+            mapPanel.Controls.Add( m_minimap );
 
             Parsers.Add( new FingerprintDigramParser( this, m_minimap ) );
             Parsers.Add( new FingerprintDiagramRaw( this, m_minimap ) );
+            Parsers.Add( new HexView( this, m_minimap ) );
 
-            Parsers[ 0 ].Focus();
+            Parsers[ 0 ].ChangeTo();
 
-            mapPanel.Controls.Add( m_minimap );
-
-            BlockSizeBox.Text = m_block_size.ToString();
+            //BlockSizeBox.Text = m_block_size.ToString();
 
             this.AllowDrop = true;
-            this.DragEnter += MainForm_DragEnter;
-            this.DragDrop += MainForm_DragDrop;
+
+            widthValue.ValueChanged += onWidthChanged;
+
+            selectionStartValue.Maximum = long.MaxValue;
+            selectionStartValue.Minimum = 0;
+
+            selectionEndValue.Maximum = long.MaxValue;
+            selectionEndValue.Minimum = 0;
+        }
+
+        private void onWidthChanged( object sender, EventArgs e )
+        {
+            //FIXME : remove control
+            //m_minimap.SetWidth( (int)widthValue.Value );
         }
 
         /********************************************************************/
@@ -59,19 +81,18 @@ namespace Binalysis
                 parser.OnDataLoaded( Data );
             }
 
-            refresh( true );
+            OnSelectionUpdated();
+            //widthValue.Value = m_minimap.GetWidth();
 
-            Invalidate();
+            refresh( true );
 
             LogLn( "----------------------------" );
             LogLn( "Opened \"" + filename + "\"" );
             LogLn( "File size: " + flen );
-            //LogLn( "Avg density: " + this.m_fingerprint.Digrams.AverageDenisty );
-            //LogLn( "Max density: " + this.m_fingerprint.Digrams.MaxDenisty );
         }
 
         /********************************************************************/
-        void Log( string msg )
+        public void Log( string msg )
         {
             debugLogBox.AppendText( msg );
             debugLogBox.SelectionStart = debugLogBox.Text.Length;
@@ -79,7 +100,7 @@ namespace Binalysis
         }
 
         /********************************************************************/
-        void LogLn( string msg )
+        public void LogLn( string msg )
         {
             Log( msg + "\n" );
         }
@@ -88,11 +109,8 @@ namespace Binalysis
         void refresh( bool full_refresh = false )
         {
             if( Data != null ) {
-                if( full_refresh ) {
-                    //m_fingerprint.Digrams.Calculate( Data, 0, Data.Length );
-                }
                 foreach( var parser in Parsers ) {
-                    parser.Invalidate();
+                    parser.Refresh();
                 }
                 mapPanel.Invalidate();
 
@@ -106,33 +124,20 @@ namespace Binalysis
             foreach( var parser in Parsers ) {
                 parser.OnSelectionUpdated();
             }
+            selectionStartValue.Value = m_minimap.GetSelectedStartOff;
+            selectionEndValue.Value = m_minimap.GetSelectedEndOff;
+        }
+
+        internal void OnDeselect()
+        {
+            OnSelectionUpdated();
         }
 
         #region winforms callbacks
         /********************************************************************/
         /********************************************************************/
         /********************************************************************/
-        private void BlockSizeBox_TextChanged( object sender, EventArgs e )
-        {
-            if( BlockSizeBox.Text.Length > 0 ) {
-                try {
-                    m_block_size = Convert.ToInt32( BlockSizeBox.Text );
-                }
-                catch( Exception ee ) {
-                    m_block_size = DEFAULT_BLOCK_SIZE;
-                }
-            }
-        }
 
-        /********************************************************************/
-        private void BlockSizeBox_Leave( object sender, EventArgs e )
-        {
-            BlockSizeBox.Text = m_block_size.ToString();
-            LogLn( "* Block size changed to " + m_block_size );
-            refresh( true );
-        }
-
-        /********************************************************************/
         private void openToolStripMenuItem_Click( object sender, EventArgs e )
         {
             if( openFileDlg.ShowDialog() == DialogResult.OK ) {
@@ -143,28 +148,11 @@ namespace Binalysis
             }
         }
 
-        /********************************************************************/
         private void exitToolStripMenuItem_Click( object sender, EventArgs e )
         {
             this.Close();
         }
 
-        /********************************************************************/
-        //private void FingerprintImg_MouseMove( object sender, MouseEventArgs e )
-        //{
-        //    var x = Convert.ToInt16( Math.Round( e.X / ( (double)FingerprintImg.Width / 256 ) ) );
-        //    var y = Convert.ToInt16( Math.Round( e.Y / ( (double)FingerprintImg.Height / 256 ) ) );
-
-        //    digramOffsetLabel.Text = "$" + x.ToString( "X" ) + ", $" + y.ToString( "X" );
-
-        //    // occasionally the mouse scans off the window; keep that from
-        //    // giving us an oob
-        //    if( x < 256 && y < 256 ) {
-        //        digramValue.Text = m_fingerprint.Digrams[ x, y ] + "";
-        //    }
-        //}
-
-        /********************************************************************/
         private void MainForm_Load( object sender, EventArgs e )
         {
             //openFile( "d:\\temp\\temp\\Super Mario Bros. (JU) (PRG1).nes" );
@@ -173,34 +161,38 @@ namespace Binalysis
             openFile( "D:\\Home\\SNES Classic\\toby-hakchi2.30\\hakchi.exe" );
         }
 
-        /********************************************************************/
         private void MainForm_KeyPress( object sender, KeyPressEventArgs e )
         {
-            if( e.KeyChar == 27 )
+            if( e.KeyChar == 27 ) {
                 this.Close();
+            }
         }
 
-        /********************************************************************/
-        private void mapPanel_Paint( object sender, PaintEventArgs e )
+        protected override void OnDragDrop( DragEventArgs drgevent )
         {
-            //selectionLabel.Text = m_minimap.GetSelectedStartOff.ToString() + " to " + m_minimap.GetSelectedEndOff.ToString();
+            string[] files = (string[])drgevent.Data.GetData( DataFormats.FileDrop );
 
-            //FIXME: wire this up in Minimap
-        }
-
-        /********************************************************************/
-        private void MainForm_DragDrop( object sender, DragEventArgs e )
-        {
-            string[] files = (string[])e.Data.GetData( DataFormats.FileDrop );
-            if( files.Length == 1 )
+            if( files.Length == 1 ) {
                 openFile( files[ 0 ] );
+            }
+
+            base.OnDragDrop( drgevent );
         }
 
-        /********************************************************************/
-        private void MainForm_DragEnter( object sender, DragEventArgs e )
+        protected override void OnDragEnter( DragEventArgs drgevent )
         {
-            if( e.Data.GetDataPresent( DataFormats.FileDrop ) )
-                e.Effect = DragDropEffects.Copy;
+            if( drgevent.Data.GetDataPresent( DataFormats.FileDrop ) ) {
+                drgevent.Effect = DragDropEffects.Copy;
+            }
+
+            base.OnDragEnter( drgevent );
+        }
+
+        protected override void OnResize( EventArgs e )
+        {
+            if( m_minimap != null )
+                m_minimap.OnResizeEnd( e );
+            base.OnResize( e );
         }
         #endregion
     }

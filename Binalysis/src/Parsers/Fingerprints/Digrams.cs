@@ -10,10 +10,10 @@ namespace Binalysis
     {
         public const int RESOLUTION = 256;
 
-        private long[,] Values { get; set; } = new long[ RESOLUTION, RESOLUTION ];
-        public long this[ int x, int y ] { get { return Values[ x, y ]; } }
-        public long MaxDenisty { get; set; } = 0;
-        public long AverageDenisty { get; set; } = 0;
+        private int[,] Values { get; set; } = new int[ RESOLUTION, RESOLUTION ];
+        public int this[ int x, int y ] { get { return Values[ x, y ]; } }
+        public int MaxDenisty { get; set; } = 0;
+        public int AverageDenisty { get; set; } = 0;
 
         public void Calculate( byte[] m_data, long range_start, long range_end )
         {

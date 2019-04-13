@@ -1,4 +1,6 @@
-﻿namespace Binalysis
+﻿using System.Windows.Forms;
+
+namespace Binalysis
 {
     partial class Parser
     {
@@ -31,10 +33,9 @@
             // 
             // Parser
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.BackColor = System.Drawing.Color.Magenta;
+            this.BackColor = System.Drawing.Color.Black;
+            this.DoubleBuffered = true;
             this.Margin = new System.Windows.Forms.Padding(0);
             this.Name = "Parser";
             this.ResumeLayout(false);

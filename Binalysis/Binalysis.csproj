@@ -51,8 +51,12 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenGL.Net.WinForms, Version=0.7.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OpenGL.Net.WinForms.0.7.1\lib\net35\OpenGL.Net.WinForms.dll</HintPath>
+    <Reference Include="Be.Windows.Forms.HexBox, Version=1.6.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Be.Windows.Forms.HexBox.1.6.1\lib\net40\Be.Windows.Forms.HexBox.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OpenGL.Net.WinForms, Version=0.8.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenGL.Net.WinForms.0.8.4\lib\net35\OpenGL.Net.WinForms.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -69,15 +73,20 @@
   <ItemGroup>
     <Compile Include="src\Parsers\Fingerprints\Digrams.cs" />
     <Compile Include="src\Parsers\Fingerprints\FingerprintDiagramRaw.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="src\Parsers\HexView.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="src\Parsers\Parser.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="src\Parsers\Parser.Designer.cs">
       <DependentUpon>Parser.cs</DependentUpon>
     </Compile>
-    <Compile Include="src\UIComponents\DataDrawer.cs" />
+    <Compile Include="src\UIComponents\DataDrawer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="src\UIComponents\Minimap.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -85,7 +94,7 @@
       <DependentUpon>Minimap.cs</DependentUpon>
     </Compile>
     <Compile Include="src\Parsers\Fingerprints\FingerprintDigramParser.cs">
-      <SubType>UserControl</SubType>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="src\Forms\MainForm.cs">
       <SubType>Form</SubType>

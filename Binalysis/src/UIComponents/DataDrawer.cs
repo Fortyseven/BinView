@@ -5,53 +5,47 @@ using System.Windows.Forms;
 
 namespace Binalysis
 {
-    class DataDrawer
+    class DataDrawer : Control
     {
-        const int MAX_HEIGHT = 1024;
+        const int WIDTH = 128;
+        const int PIXEL_SIZE = 4;
 
-        int Width { get; set; } = 128;
+        private byte[] m_data;
+        public byte[] Data {
+            get {
+                return m_data;
+            }
+            set {
+                m_data = value;
+                SetByteBounds( 0, m_data.Length );
+                if( IsMagView ) {
+                    NoSelection();
+                }
+            }
+        }
 
-        public byte[] Data { get; set; }
-
-        public PictureBox ParentControl { get; set; } = null;
         public Minimap Owner { get; set; } = null;
+
         public long RenderedHeight { get; set; }
         public bool Debug { get; set; }
 
         private long Stride { get; set; }
+
+        /// <summary>
+        /// Selection cusror in bytes
+        /// </summary>
         public long LastDragY = 0;
+
         public bool IsDragging = false;
 
-        private Bitmap m_cached_render = null;
+        private Bitmap m_backing_render = null;
+        private Bitmap m_cached_render_final = new Bitmap( 1, 1 );
 
-
-        /**********************************************/
+        public bool HasSelection { get; set; }
         public long SelectionOffsetStart { get; set; }
         public long SelectionOffsetEnd { get; set; }
 
-        public long SelectionOffsetStartInBytes {
-            get {
-                return ( SelectionOffsetStart * Width * Stride );
-            }
-        }
-        public long SelectionOffsetEndInBytes {
-            get {
-                return ( SelectionOffsetEnd * Width * Stride );
-            }
-        }
-        public long LastDragYInBytes {
-            get {
-                return ( LastDragY * Width * Stride );
-            }
-        }
 
-        public bool HasSubSelection {
-            get {
-                return ( SelectionOffsetStart > BoundStart && SelectionOffsetEnd < BoundEnd );
-            }
-        }
-
-        /**********************************************/
         public long BoundStart { get; set; }
         public long BoundEnd { get; set; }
         public long BoundLength {
@@ -60,13 +54,41 @@ namespace Binalysis
             }
         }
 
+        bool IsMagView { get; set; }
+        bool DrawCursor { get; set; } = false;
+        ToolTip offsetTip;
+
         /**********************************************/
-        public DataDrawer( Minimap owner, ref byte[] data, PictureBox parent_control, long bound_start = -1, long bound_end = -1, bool debug = false )
+        public DataDrawer( Minimap owner, ref byte[] data, bool is_magview = false )
         {
             Data = data;
             Owner = owner;
-            ParentControl = parent_control;
+            Dock = DockStyle.Fill;
+            DoubleBuffered = true;
+            Cursor = Cursors.Cross;
+            IsMagView = is_magview;
 
+            //MouseDown += this.onMouseDown;
+            //MouseUp += this.onMouseUp;
+            //MouseMove += this.onMouseMove;
+
+            // Create the tooltip that shows the offset at the cursor
+            offsetTip = new ToolTip();
+            offsetTip.AutomaticDelay = 0;
+            offsetTip.AutoPopDelay = 0;
+
+            ResetSelection();
+            SetByteBounds( -1, -1 );
+        }
+
+        /// <summary>
+        /// Sets the virtual data boundaries to display in the view; this represents 
+        /// a subset of the full data set. It's used only by a mag view.
+        /// </summary>
+        /// <param name="bound_start">Starting boundary in bytes</param>
+        /// <param name="bound_end">Ending boundary in bytes</param>
+        public void SetByteBounds( long bound_start, long bound_end )
+        {
             BoundStart = bound_start;
             BoundEnd = bound_end;
 
@@ -89,98 +111,104 @@ namespace Binalysis
                 BoundEnd = Data.Length;
             }
 
-            Debug = debug;
+            redrawBacking();
 
-            ResetSelection();
-
-            parent_control.MouseDown += this.onMouseDown;
-            parent_control.MouseUp += this.onMouseUp;
-            parent_control.MouseMove += this.onMouseMove;
+            Visible = true;
+            Invalidate();
         }
 
         /**********************************************/
         public void ResetSelection()
         {
-            SelectionOffsetStart = 0;
-            SelectionOffsetEnd = BoundEnd;
-        }
-
-        /**********************************************/
-        public void Draw()
-        {
-            if( Data.Length == 0 ) {
+            HasSelection = false;
+            if( IsMagView ) {
+                Visible = false;
                 return;
             }
-
-            if( m_cached_render == null ) {
-
-                RenderedHeight = (int)Math.Ceiling( (float)( BoundLength ) / (float)( Width ) );
-
-                if( RenderedHeight > MAX_HEIGHT )
-                    RenderedHeight = MAX_HEIGHT;
-
-                m_cached_render = new Bitmap( Width, (int)RenderedHeight );
-
-                Stride = (int)Math.Ceiling( (float)( BoundLength ) / (float)( RenderedHeight * Width ) );
-
-                long data_ptr = BoundStart;
-
-                for( int i = 0; i < ( Width * RenderedHeight ); i++ ) {
-                    data_ptr += Stride;
-
-                    if( data_ptr >= BoundEnd - 2 )
-                        continue;
-
-                    Color col = Color.FromArgb( Data[ data_ptr ], Data[ data_ptr + 1 ], Data[ data_ptr + 2 ] );
-
-                    m_cached_render.SetPixel( i % Width, i / Width, col );
-                }
-            }
-
-            var bmcopy = new Bitmap( m_cached_render );
-
-            renderSelection( bmcopy );
-
-            ParentControl.Image = bmcopy;
+            SelectionOffsetStart = BoundStart;
+            SelectionOffsetEnd = BoundEnd;
+            redrawBacking();
+            Invalidate();
         }
 
-        /**********************************************/
-        private void renderSelection( Bitmap bm )
+        internal void NoSelection()
         {
-            using( var gr = Graphics.FromImage( bm ) ) {
-                if( IsDragging ) {
-                    var x = 0;
-                    var y = SelectionOffsetStart;
-                    var w = Width - 1;
-                    var h = LastDragY - SelectionOffsetStart;
+            //Visible = false;
+        }
 
-                    if( LastDragY < SelectionOffsetStart ) {
-                        y = LastDragY;
-                        h = -h;
-                    }
+        /**********************************************/
+        public void redrawBacking()
+        {
+            if( Data.Length == 0 )
+                return;
 
-                    gr.DrawRectangle( new Pen( Color.White, 5 ), x, y, w, h );
+            RenderedHeight = (int)Math.Ceiling( ( (float)( BoundLength ) / (float)( WIDTH ) ) / PIXEL_SIZE );
+            //RenderedHeight--;
+            if( RenderedHeight < 1 )
+                RenderedHeight = 1;
+
+            m_backing_render = new Bitmap( WIDTH, (int)RenderedHeight, PixelFormat.Format32bppRgb );
+
+            Rectangle dims = new Rectangle( 0, 0, WIDTH, (int)RenderedHeight );
+
+            BitmapData picData = m_backing_render.LockBits( dims, ImageLockMode.ReadWrite, m_backing_render.PixelFormat );
+
+            IntPtr pixelStart = picData.Scan0;
+
+            System.Runtime.InteropServices.Marshal.Copy( Data, (int)BoundStart, pixelStart, (int)BoundLength );
+
+            m_backing_render.UnlockBits( picData );
+        }
+
+        /**********************************************/
+        private void renderSelection( Graphics gr )
+        {
+            if( RenderedHeight == 0 )
+                return;
+
+            var selection_start_y = ByteOffsetToControlOffset( SelectionOffsetStart );
+            var selection_end_y = ByteOffsetToControlOffset( SelectionOffsetEnd );
+
+            var cursor_control_y = ByteOffsetToControlOffset( LastDragY );
+
+            if( IsDragging ) {
+
+                var x = 0;
+                var y = selection_start_y;
+                var w = WIDTH - 10;
+                var h = cursor_control_y - selection_start_y;
+
+                if( cursor_control_y < selection_start_y ) {
+                    y = cursor_control_y;
+                    h = -h;
                 }
-                else {
+                gr.DrawRectangle( new Pen( Color.White, 5 ), x, y, w, h );
+            }
+            else if( HasSelection && !IsMagView ) {
+                var brush = new SolidBrush( Color.FromArgb( 191, 255, 0, 255 ) );
 
-                    var brush = new SolidBrush( Color.FromArgb( 128, 255, 0, 255 ) );
-
-                    // draw the top bit
-                    if( SelectionOffsetStart >= 0 ) {
-                        gr.FillRectangle( brush, 0, 0, Width, SelectionOffsetStart );
-                    }
-
-                    // draw the bottom bit
-                    if( SelectionOffsetEnd >= 0 ) {
-                        gr.FillRectangle( brush, 0, SelectionOffsetEnd, Width, RenderedHeight - SelectionOffsetEnd );
-                    }
+                // draw the top bit
+                if( selection_start_y >= 0 ) {
+                    gr.FillRectangle( brush, 0, 0, WIDTH, selection_start_y );
                 }
 
-                gr.DrawLine( new Pen( Color.White, 1 ), 0, LastDragY, Width, LastDragY );
+                // draw the bottom bit
+                if( selection_end_y >= 0 ) {
+                    gr.FillRectangle( brush, 0, selection_end_y, WIDTH, ( RenderedHeight * PIXEL_SIZE ) - selection_end_y );
+                }
+            }
+
+            if( DrawCursor ) {
+                gr.DrawLine( new Pen( Color.White, 1 ), 0, cursor_control_y, WIDTH, cursor_control_y );
             }
         }
 
         /**********************************************/
+        /// <summary>
+        /// Returns current data offset from cursor event Y position
+        /// </summary>
+        /// <param name="e"></param>
+        /// <returns></returns>
         public long TranslateMouseY( MouseEventArgs e )
         {
             var ypos = e.Y;
@@ -189,66 +217,97 @@ namespace Binalysis
                 ypos = 0;
             }
 
-            if( ypos > ParentControl.Height ) {
-                ypos = ParentControl.Height;
-
+            if( ypos > Height ) {
+                ypos = Height;
             }
 
-            return Convert.ToUInt16(
-                    Math.Round(
-                        ypos * ( (double)RenderedHeight / ParentControl.Height )
-                    )
+            //return ypos;
+
+            return ControlOffsetToByteOffset( ypos );
+        }
+
+        private long ControlOffsetToByteOffset( long control_y )
+        {
+            return Convert.ToUInt32(
+                Math.Round(
+                    ( control_y * ( (float)( RenderedHeight * PIXEL_SIZE ) / Height ) * WIDTH )
+                )
+            );
+        }
+        private long ByteOffsetToControlOffset( long control_y )
+        {
+            return Convert.ToUInt32(
+                Math.Round(
+                    ( control_y / ( ( (float)( RenderedHeight * PIXEL_SIZE ) / Height ) * WIDTH ) )
+                )
             );
         }
 
-        /**********************************************/
-        /**********************************************/
-        /**********************************************/
-        //public void onClick( MouseEventArgs e )
-        //{
-        //    var click_row = TranslateMouseY( e );
-
-        //    // first start, then end...
-        //    if( SelectionOffsetStart == -1 ) {
-        //        SelectionOffsetStart = click_row;
-        //    }
-        //    else if( SelectionOffsetEnd == -1 ) {
-        //        SelectionOffsetEnd = click_row;
-        //    }
-        //}
-
-        /**********************************************/
-        public void onMouseMove( object sender, MouseEventArgs e )
+        public void OnResizeEnd( EventArgs e )
         {
-            LastDragY = TranslateMouseY( e );
-            Owner.Invalidate();
-            Owner.Parent.Invalidate();
+            redrawBacking();
+            Invalidate();
+
         }
 
-        /**********************************************/
-        public void onMouseDown( object sender, MouseEventArgs e )
+        protected override void OnPaint( PaintEventArgs e )
         {
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+
+            if( m_backing_render != null )
+                e.Graphics.DrawImage( m_backing_render, 0, 0, WIDTH, Height );
+
+            renderSelection( e.Graphics );
+
+            base.OnPaint( e );
+        }
+
+        protected override void OnMouseMove( MouseEventArgs e )
+        {
+            base.OnMouseMove( e );
+            LastDragY = TranslateMouseY( e );
+
+            if( RenderedHeight > 0 ) {
+                var offs = LastDragY + BoundStart;
+                offsetTip.SetToolTip( this, "$" + offs.ToString( "X" ) );
+            }
+
+            Invalidate();
+        }
+
+        MouseEventArgs m_ondown_click;
+        protected override void OnMouseDown( MouseEventArgs e )
+        {
+            base.OnMouseDown( e );
+
             if( e.Button == MouseButtons.Right ) {
-                Owner.onDeselect();
+                Owner.OnDeselect();
                 return;
             }
 
+            m_ondown_click = e;
+
             IsDragging = true;
-            SelectionOffsetEnd = -1;
+            SelectionOffsetEnd = BoundLength;
             SelectionOffsetStart = TranslateMouseY( e );
             LastDragY = SelectionOffsetStart;
 
-            Owner.Invalidate();
-            Owner.Parent.Invalidate();
+            Invalidate();
         }
 
-        /**********************************************/
-        public void onMouseUp( object sender, MouseEventArgs e )
+        protected override void OnMouseUp( MouseEventArgs e )
         {
+            base.OnMouseUp( e );
+
             if( !IsDragging )
                 return;
 
             IsDragging = false;
+
+            if( e.Y == m_ondown_click.Y ) {
+                Owner.OnDeselect();
+                return;
+            }
 
             SelectionOffsetEnd = TranslateMouseY( e );
 
@@ -263,14 +322,28 @@ namespace Binalysis
                 SelectionOffsetStart = temp;
             }
 
-            if( HasSubSelection ) {
-                Owner.onSelectionMade(
-                        SelectionOffsetStartInBytes,
-                        SelectionOffsetEndInBytes
+            HasSelection = true;
+
+            if( HasSelection ) {
+                Owner.OnSelectionMade(
+                        SelectionOffsetStart + BoundStart,
+                        SelectionOffsetEnd + BoundStart,
+                        IsMagView
                 );
             }
-            Owner.Invalidate();
-            Owner.Parent.Invalidate();
+            Invalidate();
+        }
+
+        protected override void OnMouseEnter( EventArgs e )
+        {
+            DrawCursor = true;
+            base.OnMouseEnter( e );
+        }
+
+        protected override void OnMouseLeave( EventArgs e )
+        {
+            DrawCursor = false;
+            base.OnMouseLeave( e );
         }
     }
 }

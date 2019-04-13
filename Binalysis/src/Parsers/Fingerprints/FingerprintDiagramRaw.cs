@@ -20,30 +20,26 @@ namespace Binalysis
         {
         }
 
-        public override void Draw()
+        public override void RefreshFingerprintBitmap()
         {
-            if( !ForceRedraw ) {
-                return;
-            }
+            if( ForceRedraw ) {
 
-            Bitmap = new Bitmap( 256, 256 );
-            Color active = Color.FromArgb( 255, 255, 255, 255 );
+                Bitmap = new Bitmap( 256, 256 );
+                Color active = Color.FromArgb( 255, 255, 255, 255 );
 
-            for( int y = 0; y < Digrams.RESOLUTION; y++ ) {
-                for( int x = 0; x < Digrams.RESOLUTION; x++ ) {
+                for( int y = 0; y < Digrams.RESOLUTION; y++ ) {
+                    for( int x = 0; x < Digrams.RESOLUTION; x++ ) {
 
-                    if( Digrams[ x, y ] > 0 ) {
-                        Bitmap.SetPixel( x, y, active );
+                        if( Digrams[ x, y ] > 0 ) {
+                            Bitmap.SetPixel( x, y, active );
+                        }
+
                     }
-
                 }
+                ForceRedraw = false;
             }
-            ForceRedraw = false;
 
-            PBCanvas.Image = Bitmap;
             Owner.Invalidate();
-            ForceRedraw = false;
-
         }
 
         public override Control BuildOptions()
