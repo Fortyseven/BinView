@@ -20,9 +20,9 @@ namespace Binalysis
         {
         }
 
-        public override void RefreshFingerprintBitmap()
+        public override void RedrawFingerprintBitmap( bool force_redraw = false )
         {
-            if( ForceRedraw ) {
+            if( force_redraw ) {
 
                 Bitmap = new Bitmap( 256, 256 );
                 Color active = Color.FromArgb( 255, 255, 255, 255 );
@@ -33,10 +33,8 @@ namespace Binalysis
                         if( Digrams[ x, y ] > 0 ) {
                             Bitmap.SetPixel( x, y, active );
                         }
-
                     }
                 }
-                ForceRedraw = false;
             }
 
             Owner.Invalidate();

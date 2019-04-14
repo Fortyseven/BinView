@@ -18,10 +18,10 @@ namespace Binalysis
             set {
                 m_data = value;
                 m_datadrawer_overview.Data = value;
-                m_datadrawer_overview.Invalidate();
+                //m_datadrawer_overview.Invalidate();
+
                 m_datadrawer_mag.Data = value;
                 m_datadrawer_mag.ResetSelection();
-                m_datadrawer_mag.Invalidate();
             }
         }
 
@@ -51,59 +51,89 @@ namespace Binalysis
         public Minimap( MainForm owner )
         {
             InitializeComponent();
-            this.Owner = owner;
-            this.Dock = DockStyle.Fill;
-            //this.DoubleBuffered = true;
+
+            Owner = owner;
+            Dock = DockStyle.Fill;
 
             m_datadrawer_overview = new DataDrawer( this, ref m_data );
             m_datadrawer_mag = new DataDrawer( this, ref m_null_data, true );
 
             tableLayoutPanel1.Controls.Add( m_datadrawer_overview );
             tableLayoutPanel1.Controls.Add( m_datadrawer_mag );
-
-            //this.KeyDown += Minimap_KeyDown;
         }
 
-        //private void Minimap_KeyDown( object sender, KeyEventArgs e )
-        //{
-        //    switch( e.KeyCode ) {
-        //        // ]
-        //        case Keys.OemCloseBrackets:
-        //            m_datadrawer_overview.SetWidthRel( 1 );
-        //            break;
-        //        // [
-        //        case Keys.OemOpenBrackets:
-        //            m_datadrawer_overview.SetWidthRel( -1 );
-        //            break;
-        //    }
-        //}
-
         /***************************************************************/
-        //public int GetWidth()
-        //{
-        //    return m_datadrawer_overview.WIDTH;
-        //}
-        /***************************************************************/
-        //public void SetWidth( int width )
-        //{
-        //    if( width < 0 )
-        //        width = 0;
-        //    if( width > 2048 )
-        //        width = 2048;
-
-        //    m_datadrawer_overview.WIDTH = width;
-        //    //m_datadrawer_overview.RefreshTempName();
-        //}
-        /***************************************************************/
-        public void SetBoundStart( long byte_offset )
+        public void AdjustSelectionStart( long amount )
         {
-            //m_datadrawer_overview.SelectionOffsetStart
+            if( !m_datadrawer_overview.HasSelection )
+                return;
+
+            var start = m_datadrawer_overview.SelectionOffsetStart;
+
+            if(
+                ( ( start + amount ) < m_datadrawer_overview.BoundStart ) ||
+                ( ( start + amount ) >= m_datadrawer_overview.SelectionOffsetEnd - 1 )
+              ) {
+                return;
+            }
+
+            m_datadrawer_overview.SelectionOffsetStart += amount;
+
+            OnSelectionMade( m_datadrawer_overview.SelectionOffsetStart, m_datadrawer_overview.SelectionOffsetEnd );
+            Console.WriteLine( "Shifting top by..." + amount );
         }
         /***************************************************************/
-        public void SetBoundEnd( long byte_offset )
+        public void AdjustSelectionEnd( long amount )
         {
-            //
+            if( !m_datadrawer_overview.HasSelection )
+                return;
+
+            var end = m_datadrawer_overview.SelectionOffsetEnd;
+
+            if(
+                ( ( end + amount ) > m_datadrawer_overview.BoundEnd ) ||
+                ( ( end + amount ) <= m_datadrawer_overview.SelectionOffsetStart + 1 )
+               ) {
+                return;
+            }
+
+            m_datadrawer_overview.SelectionOffsetEnd += amount;
+
+            OnSelectionMade( m_datadrawer_overview.SelectionOffsetStart, m_datadrawer_overview.SelectionOffsetEnd );
+            Console.WriteLine( "Shifting bottom by..." + amount );
         }
+
+        public void SetSelectionStart( long value )
+        {
+            if( value < 0 ) {
+                value = 0;
+            }
+            if( value > 0 ) {
+                m_datadrawer_overview.HasSelection = true;
+            }
+
+            m_datadrawer_overview.SelectionOffsetStart = value;
+            //m_datadrawer_overview.Invalidate();
+
+            OnSelectionMade( m_datadrawer_overview.SelectionOffsetStart, m_datadrawer_overview.SelectionOffsetEnd );
+        }
+        public void SetSelectionEnd( long value )
+        {
+            if( value > Data.Length ) {
+                value = Data.Length;
+            }
+
+            if( value < Data.Length ) {
+                m_datadrawer_overview.HasSelection = true;
+            }
+
+
+            m_datadrawer_overview.SelectionOffsetEnd = value;
+            //m_datadrawer_overview.Invalidate();
+
+            OnSelectionMade( m_datadrawer_overview.SelectionOffsetStart, m_datadrawer_overview.SelectionOffsetEnd );
+        }
+
         /***************************************************************/
         private void UpdateStatus()
         {
@@ -115,21 +145,26 @@ namespace Binalysis
         /***************************************************************/
         public void OnSelectionMade( long start, long end, bool is_magview = false )
         {
-            Owner.OnSelectionUpdated();
-
-            m_datadrawer_mag.SetByteBounds( start, end );
-
             if( is_magview ) {
                 m_datadrawer_overview.SelectionOffsetStart = start;
                 m_datadrawer_overview.SelectionOffsetEnd = end;
-                m_datadrawer_overview.Invalidate();
+                //m_datadrawer_overview.Invalidate();
             }
+            else {
+                m_datadrawer_mag.SetByteBounds( start, end );
+                if( m_datadrawer_overview.HasSelection ) {
+                    m_datadrawer_mag.Show();
+                    m_datadrawer_mag.Invalidate();
+                    m_datadrawer_overview.Invalidate();
+                }
+            }
+            Owner.OnSelectionUpdated( start, end );
         }
 
         public void OnClearSelection()
         {
             m_datadrawer_overview.ResetSelection();
-            m_datadrawer_mag.NoSelection();
+            m_datadrawer_mag.ResetSelection();
         }
 
         public void OnResizeEnd( EventArgs e )
@@ -143,6 +178,11 @@ namespace Binalysis
             m_datadrawer_overview.ResetSelection();
             m_datadrawer_mag.ResetSelection();
             Owner.OnDeselect();
+        }
+
+        internal void OnMapClick( long offset )
+        {
+            Owner.OnMapClick( offset );
         }
     }
 }

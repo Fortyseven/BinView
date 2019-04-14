@@ -42,38 +42,19 @@ namespace Binalysis
             };
 
             return HexBox;
-
-            //return new Panel() {
-            //    BackColor = Color.FromArgb( 0, 0, 0 ),
-            //    Dock = DockStyle.Fill,
-            //    Controls = {
-            //        new Label() {
-            //            Text="Is this really fucking working?"
-            //        }
-            //    }
-            //};
         }
-
-        //public override void Destroy()
-        //{
-        //    //throw new NotImplementedException();
-        //}
 
         public override void OnEnter()
         {
-            //throw new NotImplementedException();
         }
 
         public override void OnLeave()
         {
-            //throw new NotImplementedException();
         }
 
-        public override void OnSelectionUpdated()
+        public override void OnSelectionUpdated( long start, long end )
         {
-            //throw new NotImplementedException();
-            HexBox.SelectionStart = Minimap.GetSelectedStartOff;
-
+            HexBox.SelectionStart = start;
         }
 
         public override void PagePaint( object sender, PaintEventArgs p )
@@ -83,13 +64,17 @@ namespace Binalysis
 
         public override void UpdateOptions()
         {
-            //
         }
 
         public override void OnDataLoaded( byte[] data )
         {
             Data = data;
             HexBox.ByteProvider = new DynamicByteProvider( Data );
+        }
+
+        public override void OnMapClick( long offset )
+        {
+            HexBox.SelectionStart = offset;
         }
     }
 }

@@ -21,6 +21,7 @@ namespace Binalysis
         protected TabPage Page { get; set; }
         protected Panel OptionsPanel { get; set; }
         protected Control CreatedControls { get; set; }
+        protected Control CreatedOptionsPage { get; set; }
 
         public Parser( MainForm owner, Minimap minimap )
         {
@@ -46,9 +47,17 @@ namespace Binalysis
             Owner.contentTabPanel.Invalidate();
 
             // options
-            OptionsPanel = new Panel();
-            OptionsPanel.Dock = DockStyle.Fill;
-            OptionsPanel.Controls.Add( BuildOptions() );
+            CreatedOptionsPage = BuildOptions();
+            if( CreatedOptionsPage != null ) {
+                OptionsPanel = new Panel();
+                OptionsPanel.Dock = DockStyle.Fill;
+                OptionsPanel.Controls.Add( BuildOptions() );
+            }
+
+            Owner.SubTabPanel.TabPages[ 0 ].KeyDown += ( object sender, KeyEventArgs e ) => { };
+            Owner.SubTabPanel.TabPages[ 0 ].PreviewKeyDown += ( object sender, PreviewKeyDownEventArgs e ) => { };
+            Owner.SubTabPanel.TabPages[ 0 ].KeyPress += ( object sender, KeyPressEventArgs e ) => { };
+            Owner.SubTabPanel.TabPages[ 0 ].KeyUp += ( object sender, KeyEventArgs e ) => { };
 
             ChangeTo();
         }
@@ -72,22 +81,51 @@ namespace Binalysis
 
         abstract public Control Create();
 
-        abstract public Control BuildOptions();
-        abstract public void UpdateOptions();
+        public virtual Control BuildOptions()
+        {
+            return null;
+        }
 
-        abstract public void PagePaint( object sender, PaintEventArgs p );
+        public virtual void UpdateOptions()
+        {
+            Invalidate();
+        }
 
-        //abstract public void Destroy();
+        public virtual void PagePaint( object sender, PaintEventArgs p )
+        {
 
-        abstract public void OnEnter();
-        abstract public void OnLeave();
+        }
 
-        abstract public void OnSelectionUpdated();
+        public virtual void OnEnter()
+        {
+
+        }
+
+        public virtual void OnLeave()
+        {
+
+        }
+
+        public virtual void OnSelectionUpdated( long start, long end )
+        {
+            Invalidate();
+        }
 
         public virtual void OnDataLoaded( byte[] data )
         {
             Data = data;
-            OnSelectionUpdated();
+            OnSelectionUpdated( 0, Data.Length );
+        }
+
+        public virtual void OnMapClick( long offset )
+        {
+            Invalidate();
+        }
+
+        protected override void OnMouseMove( MouseEventArgs e )
+        {
+            Console.WriteLine( "What" );
+            base.OnMouseMove( e );
         }
     }
 }

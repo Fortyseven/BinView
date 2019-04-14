@@ -8,9 +8,9 @@ namespace Binalysis
     class FingerprintDigramParser : Parser
     {
         public Bitmap Bitmap { get; set; }
-        public bool ForceRedraw { get; set; } = true;
         public Digrams Digrams { get; set; } = new Digrams();
-        protected UserControl Canvas { get; set; }
+        protected Control Canvas { get; set; }
+        ToolTip offsetTip;
 
         int m_intensity = 1;
         public int Intensity {
@@ -35,37 +35,35 @@ namespace Binalysis
         /********************************************************************/
         /********************************************************************/
         /********************************************************************/
-
         public FingerprintDigramParser( MainForm owner, Minimap minimap ) : base( owner, minimap )
         {
         }
 
-        /********************************************************************/
         public override Control Create()
         {
-            ForceRedraw = true;
-            Canvas = new UserControl();
+            Canvas = new Control() {
+                Dock = DockStyle.Fill,
+            };
 
-            //Canvas.BackColor = Color.FromArgb( 0, 0, 0 );
-            Canvas.Dock = DockStyle.Fill;
+            Canvas.MouseClick += OnCanvasMouseClick;
+
+            offsetTip = new ToolTip();
+            offsetTip.AutomaticDelay = 0;
+            offsetTip.AutoPopDelay = 0;
 
             return Canvas;
         }
 
-        /********************************************************************/
-        public virtual void RefreshFingerprintBitmap()
+        public virtual void RedrawFingerprintBitmap( bool force_redraw = false )
         {
-            if( ForceRedraw ) {
-
+            if( force_redraw ) {
                 Bitmap = new Bitmap( 256, 256 );
 
                 var brush = new System.Drawing.SolidBrush( System.Drawing.Color.Red );
                 var mult = ( Bitmap.Width / Digrams.RESOLUTION );
 
-
                 using( Graphics gr = Graphics.FromImage( Bitmap ) ) {
                     gr.InterpolationMode = InterpolationMode.NearestNeighbor;
-                    //gr.Clear( Color.FromArgb( 32, 32, 32 ) );
                     gr.Clear( Color.Black );
                     var average_density = Digrams.AverageDenisty;
 
@@ -99,12 +97,10 @@ namespace Binalysis
                         }
                     }
                 }
-                ForceRedraw = false;
             }
-            Invalidate();
+            Refresh();
         }
 
-        /********************************************************************/
         public override Control BuildOptions()
         {
             FlowLayoutPanel panel = new FlowLayoutPanel();
@@ -115,7 +111,7 @@ namespace Binalysis
                 Name = "Intensity",
                 Minimum = 1,
                 Maximum = 100,
-                Value = 8
+                Value = 8,
             };
 
             ui_intensitySlider.ValueChanged += OnIntensityChanged;
@@ -132,8 +128,7 @@ namespace Binalysis
         private void OnIntensityChanged( object sender, EventArgs e )
         {
             Intensity = ui_intensitySlider.Value;
-            ForceRedraw = true;
-            RefreshFingerprintBitmap();
+            RedrawFingerprintBitmap( true );
             Refresh();
         }
 
@@ -143,46 +138,56 @@ namespace Binalysis
                 //gr.Clear( Color.Black );
                 gr.InterpolationMode = InterpolationMode.NearestNeighbor;
                 gr.DrawImage( Bitmap, new Rectangle( 0, 0, this.Width, this.Height ) );
-                gr.DrawLine( new Pen( Color.Red, 2 ), 0, 0, 100, 100 );
             }
             base.OnPaint( pe );
         }
 
-        public void Redraw( bool force_draw = false )
+        public void Redraw( long start = -1, long end = -1 )
         {
-            if( force_draw ) {
-                Digrams.Calculate( Data, Minimap.GetSelectedStartOff, Minimap.GetSelectedEndOff );
-                ForceRedraw = true;
+            if( start >= 0 ) {
+                Digrams.Calculate( Data, start, end );
             }
-            RefreshFingerprintBitmap();
-            Invalidate();
+
+            RedrawFingerprintBitmap( true );
         }
 
         public override void OnDataLoaded( byte[] data )
         {
             base.OnDataLoaded( data );
             Intensity = 8;
-            OnSelectionUpdated();
+            OnSelectionUpdated( 0, data.Length );
         }
 
-        public override void OnSelectionUpdated()
+        public override void OnSelectionUpdated( long start, long end )
         {
-            Redraw( true );
+            Redraw( start, end );
+            base.OnSelectionUpdated( start, end );
         }
 
         public override void OnEnter()
         {
-            Redraw( true );
-        }
-
-        public override void OnLeave()
-        {
-
+            Redraw();
         }
 
         public override void UpdateOptions()
         {
             //throw new NotImplementedException();
         }
+
+        protected void OnCanvasMouseClick( object sender, MouseEventArgs e )
+        {
+            Console.WriteLine( "Was clicked" );
+            int x = e.X * ( 256 / Width );
+            int y = e.Y * ( 256 / Height );
+            offsetTip.SetToolTip( this, "($" + x.ToString( "X" ) + ", $" + y.ToString( "X" ) + ")" );
+            base.OnMouseClick( e );
+        }
+
+        //protected override void OnMouseMove( MouseEventArgs e )
+        //{
+        //    base.OnMouseMove( e );
+        //    offsetTip.SetToolTip( this, "Asshole");
+        //    Canvas.Invalidate();
+        //}
     }
 }

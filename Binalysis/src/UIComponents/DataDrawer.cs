@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Binalysis
 {
-    class DataDrawer : Control
+    class DataDrawer : UserControl
     {
         const int WIDTH = 128;
         const int PIXEL_SIZE = 4;
@@ -18,9 +18,6 @@ namespace Binalysis
             set {
                 m_data = value;
                 SetByteBounds( 0, m_data.Length );
-                if( IsMagView ) {
-                    NoSelection();
-                }
             }
         }
 
@@ -55,7 +52,7 @@ namespace Binalysis
         }
 
         bool IsMagView { get; set; }
-        bool DrawCursor { get; set; } = false;
+        long CursorLastAt { get; set; } = -1;
         ToolTip offsetTip;
 
         /**********************************************/
@@ -68,17 +65,12 @@ namespace Binalysis
             Cursor = Cursors.Cross;
             IsMagView = is_magview;
 
-            //MouseDown += this.onMouseDown;
-            //MouseUp += this.onMouseUp;
-            //MouseMove += this.onMouseMove;
-
             // Create the tooltip that shows the offset at the cursor
             offsetTip = new ToolTip();
             offsetTip.AutomaticDelay = 0;
             offsetTip.AutoPopDelay = 0;
 
             ResetSelection();
-            SetByteBounds( -1, -1 );
         }
 
         /// <summary>
@@ -89,6 +81,7 @@ namespace Binalysis
         /// <param name="bound_end">Ending boundary in bytes</param>
         public void SetByteBounds( long bound_start, long bound_end )
         {
+            CursorLastAt = -1;
             BoundStart = bound_start;
             BoundEnd = bound_end;
 
@@ -112,28 +105,20 @@ namespace Binalysis
             }
 
             redrawBacking();
-
-            Visible = true;
-            Invalidate();
         }
 
         /**********************************************/
         public void ResetSelection()
         {
             HasSelection = false;
-            if( IsMagView ) {
-                Visible = false;
-                return;
-            }
             SelectionOffsetStart = BoundStart;
             SelectionOffsetEnd = BoundEnd;
+            CursorLastAt = -1;
+            if( IsMagView ) {
+                Hide();
+                return;
+            }
             redrawBacking();
-            Invalidate();
-        }
-
-        internal void NoSelection()
-        {
-            //Visible = false;
         }
 
         /**********************************************/
@@ -143,7 +128,7 @@ namespace Binalysis
                 return;
 
             RenderedHeight = (int)Math.Ceiling( ( (float)( BoundLength ) / (float)( WIDTH ) ) / PIXEL_SIZE );
-            //RenderedHeight--;
+
             if( RenderedHeight < 1 )
                 RenderedHeight = 1;
 
@@ -160,6 +145,7 @@ namespace Binalysis
             m_backing_render.UnlockBits( picData );
         }
 
+        int c = 0;
         /**********************************************/
         private void renderSelection( Graphics gr )
         {
@@ -198,9 +184,14 @@ namespace Binalysis
                 }
             }
 
-            if( DrawCursor ) {
-                gr.DrawLine( new Pen( Color.White, 1 ), 0, cursor_control_y, WIDTH, cursor_control_y );
+            if( CursorLastAt > -1 ) {
+                var y = ByteOffsetToControlOffset( CursorLastAt );
+                var col = ( c % 2 == 0 ) ? 255 : 0;
+                gr.DrawRectangle( new Pen( Color.FromArgb( col, col, col ) ), 0, y, WIDTH, 1 );
             }
+
+            gr.DrawLine( new Pen( Color.White, 1 ), 0, cursor_control_y, WIDTH, cursor_control_y );
+            c++;
         }
 
         /**********************************************/
@@ -246,8 +237,6 @@ namespace Binalysis
         public void OnResizeEnd( EventArgs e )
         {
             redrawBacking();
-            Invalidate();
-
         }
 
         protected override void OnPaint( PaintEventArgs e )
@@ -291,8 +280,6 @@ namespace Binalysis
             SelectionOffsetEnd = BoundLength;
             SelectionOffsetStart = TranslateMouseY( e );
             LastDragY = SelectionOffsetStart;
-
-            Invalidate();
         }
 
         protected override void OnMouseUp( MouseEventArgs e )
@@ -305,7 +292,11 @@ namespace Binalysis
             IsDragging = false;
 
             if( e.Y == m_ondown_click.Y ) {
-                Owner.OnDeselect();
+                if( !IsMagView ) {
+                    Owner.OnDeselect();
+                }
+                Owner.OnMapClick( TranslateMouseY( e ) );
+                CursorLastAt = TranslateMouseY( e );
                 return;
             }
 
@@ -331,19 +322,6 @@ namespace Binalysis
                         IsMagView
                 );
             }
-            Invalidate();
-        }
-
-        protected override void OnMouseEnter( EventArgs e )
-        {
-            DrawCursor = true;
-            base.OnMouseEnter( e );
-        }
-
-        protected override void OnMouseLeave( EventArgs e )
-        {
-            DrawCursor = false;
-            base.OnMouseLeave( e );
         }
     }
 }

@@ -13,8 +13,6 @@ namespace Binalysis
 
         public byte[] Data { get; set; } = new byte[ 0 ] { };
 
-        //int m_block_size = DEFAULT_BLOCK_SIZE;
-
         //protected override CreateParams CreateParams {
         //    get {
         //        CreateParams cp = base.CreateParams;
@@ -35,6 +33,7 @@ namespace Binalysis
             DoubleBuffered = true;
 
             m_minimap = new Minimap( this );
+
             mapPanel.Controls.Add( m_minimap );
 
             Parsers.Add( new FingerprintDigramParser( this, m_minimap ) );
@@ -43,26 +42,24 @@ namespace Binalysis
 
             Parsers[ 0 ].ChangeTo();
 
-            //BlockSizeBox.Text = m_block_size.ToString();
-
             this.AllowDrop = true;
-
-            widthValue.ValueChanged += onWidthChanged;
 
             selectionStartValue.Maximum = long.MaxValue;
             selectionStartValue.Minimum = 0;
+            selectionStartValue.ValueChanged += ( object sender, EventArgs e ) => {
+                m_minimap.SetSelectionStart( Convert.ToInt32( selectionStartValue.Value ) );
+            };
 
             selectionEndValue.Maximum = long.MaxValue;
             selectionEndValue.Minimum = 0;
+            selectionEndValue.ValueChanged += ( object sender, EventArgs e ) => {
+                m_minimap.SetSelectionEnd( Convert.ToInt32( selectionEndValue.Value ) );
+            };
+
+            // eat 'em up yum
+            contentTabPanel.KeyDown += ( object sender, KeyEventArgs e ) => { };
         }
 
-        private void onWidthChanged( object sender, EventArgs e )
-        {
-            //FIXME : remove control
-            //m_minimap.SetWidth( (int)widthValue.Value );
-        }
-
-        /********************************************************************/
         private void openFile( string filename )
         {
             FileStream fs = File.OpenRead( filename );
@@ -81,8 +78,7 @@ namespace Binalysis
                 parser.OnDataLoaded( Data );
             }
 
-            OnSelectionUpdated();
-            //widthValue.Value = m_minimap.GetWidth();
+            OnSelectionUpdated( 0, Data.Length );
 
             refresh( true );
 
@@ -98,14 +94,11 @@ namespace Binalysis
             debugLogBox.SelectionStart = debugLogBox.Text.Length;
             debugLogBox.ScrollToCaret();
         }
-
-        /********************************************************************/
         public void LogLn( string msg )
         {
             Log( msg + "\n" );
         }
 
-        /********************************************************************/
         void refresh( bool full_refresh = false )
         {
             if( Data != null ) {
@@ -113,24 +106,28 @@ namespace Binalysis
                     parser.Refresh();
                 }
                 mapPanel.Invalidate();
-
-                //DataOverviewImg.Image = Data_overview.render( Data );
             }
         }
 
-        /********************************************************************/
-        public void OnSelectionUpdated()
+        public void OnMapClick( long offset )
         {
             foreach( var parser in Parsers ) {
-                parser.OnSelectionUpdated();
+                parser.OnMapClick( offset );
             }
-            selectionStartValue.Value = m_minimap.GetSelectedStartOff;
-            selectionEndValue.Value = m_minimap.GetSelectedEndOff;
+        }
+
+        public void OnSelectionUpdated( long start, long end )
+        {
+            foreach( var parser in Parsers ) {
+                parser.OnSelectionUpdated( start, end );
+            }
+            selectionStartValue.Value = start;
+            selectionEndValue.Value = end;
         }
 
         internal void OnDeselect()
         {
-            OnSelectionUpdated();
+            OnSelectionUpdated( 0, Data.Length );
         }
 
         #region winforms callbacks
@@ -161,11 +158,63 @@ namespace Binalysis
             openFile( "D:\\Home\\SNES Classic\\toby-hakchi2.30\\hakchi.exe" );
         }
 
-        private void MainForm_KeyPress( object sender, KeyPressEventArgs e )
+        protected override bool ProcessCmdKey( ref Message msg, Keys keyData )
         {
-            if( e.KeyChar == 27 ) {
-                this.Close();
+            switch( keyData ) {
+
+                // QUIT
+                case Keys.Escape:
+                    this.Close();
+                    break;
+
+                // START OFFSET ----------------------------
+                case Keys.Up:
+                    m_minimap.AdjustSelectionStart( 1 );
+                    break;
+                case ( Keys.Up | Keys.Control ):
+                    m_minimap.AdjustSelectionStart( 4096 );
+                    break;
+                case Keys.Down:
+                    m_minimap.AdjustSelectionStart( -1 );
+                    break;
+                case ( Keys.Down | Keys.Control ):
+                    m_minimap.AdjustSelectionStart( -4096 );
+                    break;
+
+                // END OFFSET ------------------------------
+                case ( Keys.Up | Keys.Alt ):
+                    m_minimap.AdjustSelectionEnd( 1 );
+                    break;
+                case ( Keys.Up | Keys.Control | Keys.Alt ):
+                    m_minimap.AdjustSelectionEnd( 4096 );
+                    break;
+                case ( Keys.Down | Keys.Alt ):
+                    m_minimap.AdjustSelectionEnd( -1 );
+                    break;
+                case ( Keys.Down | Keys.Control | Keys.Alt ):
+                    m_minimap.AdjustSelectionEnd( -4096 );
+                    break;
+
+                // MOVE SELECTION WINDOW -------------------
+                case Keys.Left:
+                    m_minimap.AdjustSelectionStart( -1 );
+                    m_minimap.AdjustSelectionEnd( -1 );
+                    break;
+                case Keys.Right:
+                    m_minimap.AdjustSelectionStart( 1 );
+                    m_minimap.AdjustSelectionEnd( 1 );
+                    break;
+                case ( Keys.Left | Keys.Control ):
+                    m_minimap.AdjustSelectionStart( -4096 );
+                    m_minimap.AdjustSelectionEnd( -4096 );
+                    break;
+                case ( Keys.Right | Keys.Control ):
+                    m_minimap.AdjustSelectionStart( 4096 );
+                    m_minimap.AdjustSelectionEnd( 4096 );
+                    break;
             }
+
+            return base.ProcessCmdKey( ref msg, keyData );
         }
 
         protected override void OnDragDrop( DragEventArgs drgevent )
