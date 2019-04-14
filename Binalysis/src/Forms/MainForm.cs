@@ -13,14 +13,6 @@ namespace Binalysis
 
         public byte[] Data { get; set; } = new byte[ 0 ] { };
 
-        //protected override CreateParams CreateParams {
-        //    get {
-        //        CreateParams cp = base.CreateParams;
-        //        cp.ExStyle |= 0x02000000;
-        //        return cp;
-        //    }
-        //}
-
         Minimap m_minimap;
 
         List<Parser> Parsers { get; set; } = new List<Parser>();
